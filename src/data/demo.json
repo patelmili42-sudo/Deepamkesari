@@ -1,0 +1,111 @@
+
+{
+  "authors": [
+    {
+      "id": 1,
+      "name": "Dr. Aranya Sharma",
+      "photo": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=400",
+      "bio": "Dr. Aranya Sharma is a renowned academic and philosopher who has dedicated over 30 years to researching ancient Indian literature. Her works are praised for their scholarly depth and accessibility.",
+      "role": "Author"
+    },
+    {
+      "id": 2,
+      "name": "Vikram Sethi",
+      "photo": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400",
+      "bio": "Vikram Sethi is a polyglot and master translator known for bringing the nuances of Sanskrit poetry into modern languages without losing their original soul.",
+      "role": "Translator"
+    },
+    {
+      "id": 3,
+      "name": "Meera Iyer",
+      "photo": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
+      "bio": "Meera Iyer writes contemporary fiction and poetry that explores themes of identity, culture, and transformation in modern India.",
+      "role": "Author"
+    },
+    {
+      "id": 4,
+      "name": "Deep Patel",
+      "photo": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400",
+      "bio": "Rooted in values and inspired by life itself, Deep Patel is a writer and publisher at Deepam Kesari Publishing House. He writes with the intention of preserving culture, expressing genuine human emotions, and encouraging positive change through meaningful literature.",
+      "role": "Author",
+      "academicPedigree": "Master's degree in Science (M.Sc.) with specialization in Organic Chemistry",
+      "creativeFocus": "Gujarati Literature & Culture",
+      "performingArts": "Navodit Artist in Lokdayra",
+      "literaryVision": "Writing is not merely a profession but a responsibility—to reflect truth, inspire courage, and create stories that leave a thoughtful and lasting impact on readers across generations."
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "title": "Book Launch & Reading Circle",
+      "date": "2025-05-12",
+      "location": "Ahmedabad, Gujarat",
+      "image": "/assets/images/BOOK_STACK.jpeg",
+      "galleryImages": [
+        "/assets/images/BOOK_STACK.jpeg",
+        "/assets/images/BOOK_STACK2.jpeg",
+        "/assets/images/books.jpeg"
+      ],
+      "description": "An evening of author reflections, live readings, and intimate conversation with readers.",
+      "details": "The event featured a live reading from the latest release, a panel discussion, and a Q&A session with the author and the audience.",
+      "category": "Launch Event"
+    },
+    {
+      "id": 2,
+      "title": "Literary Festival Showcase",
+      "date": "2025-06-28",
+      "location": "Rajkot, Gujarat",
+      "image": "/assets/images/BOOK_STACK2.jpeg",
+      "galleryImages": [
+        "/assets/images/BOOK_STACK2.jpeg",
+        "/assets/images/books.jpeg",
+        "/assets/images/IMG_20250506_113923.png"
+      ],
+      "description": "A vibrant celebration of storytelling, poetry, and emerging voices from across India.",
+      "details": "Visitors enjoyed poetry readings, book stalls, interactive workshops, and networking among authors, publishers, and readers.",
+      "category": "Festival"
+    },
+    {
+      "id": 3,
+      "title": "Children's Story Session",
+      "date": "2025-08-08",
+      "location": "Vadodara, Gujarat",
+      "image": "/assets/images/books.jpeg",
+      "galleryImages": [
+        "/assets/images/books.jpeg",
+        "/assets/images/NAME_LOGO.jpeg",
+        "/assets/images/logo.png"
+      ],
+      "description": "Interactive reading sessions designed to inspire young readers and families.",
+      "details": "The session included storytelling, drawing activities, and a fun discussion about imagination and books for children.",
+      "category": "Community Event"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "bookId": 1,
+      "userName": "Amit Sharma",
+      "rating": 5,
+      "comment": "Truly a masterpiece. Changed my perspective on ancient philosophy.",
+      "createdAt": "2024-05-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "bookId": 6,
+      "userName": "Rahul Patel",
+      "rating": 5,
+      "comment": "Very inspiring collection. Must read for every literature lover.",
+      "createdAt": "2024-05-02T11:00:00Z"
+    },
+    {
+      "id": 3,
+      "bookId": 2,
+      "userName": "Sneha Gupta",
+      "rating": 4,
+      "comment": "Excellent historical context. The translation is very smooth.",
+      "createdAt": "2024-05-03T12:00:00Z"
+    }
+  ],
+  "contactRequests": []
+}

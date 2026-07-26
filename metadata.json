@@ -1,0 +1,8 @@
+{
+  "name": "Deepam Kesari Publishing House",
+  "description": "A premium, intellectual website for a classic book publication house, featuring book showcases, author profiles, and a user authentication system.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

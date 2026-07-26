@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "Book": {
+      "title": "Book",
+      "description": "A book published by the company",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "authorId": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "description": { "type": "string" },
+        "isbn": { "type": "string" },
+        "amazonLink": { "type": "string" },
+        "whatsappLink": { "type": "string" },
+        "category": { "type": "string" },
+        "language": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "price": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "authorId", "coverImage", "description"]
+    },
+    "Author": {
+      "title": "Author",
+      "description": "An author, translator, or editor",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "photo": { "type": "string" },
+        "bio": { "type": "string" },
+        "role": { "type": "string", "enum": ["Author", "Translator", "Editor"] },
+        "featured": { "type": "boolean" }
+      },
+      "required": ["name", "photo", "bio", "role"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A customer review for a book or the publisher",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "reviewerName": { "type": "string" },
+        "reviewerPhoto": { "type": "string" },
+        "rating": { "type": "number" },
+        "bookId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["text", "reviewerName", "rating"]
+    }
+  },
+  "firestore": {
+    "books": {
+      "schema": "Book",
+      "description": "Collection of books"
+    },
+    "authors": {
+      "schema": "Author",
+      "description": "Collection of authors"
+    },
+    "reviews": {
+      "schema": "Review",
+      "description": "Collection of reviews"
+    }
+  }
+}

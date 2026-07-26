@@ -65,53 +65,45 @@ export default function BookDetails() {
     if (!id) return;
     setLoadingReviews(true);
 
-    const applyFallbackPagination = (all: Review[]) => {
-      setReviews(all);
-      setPagedReviews(all.slice((page - 1) * perPage, page * perPage));
-      setTotalPages(Math.max(1, Math.ceil(all.length / perPage)));
+    const applyPagination = (all: Review[]) => {
+      const normalizedReviews = Array.isArray(all) ? all : [];
+      setReviews(normalizedReviews);
+      setPagedReviews(normalizedReviews.slice((page - 1) * perPage, page * perPage));
+      setTotalPages(Math.max(1, Math.ceil(normalizedReviews.length / perPage)));
     };
 
     try {
       const res = await fetch(`/api/reviews/${id}?page=${page}&limit=${perPage}`);
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
 
-        if (Array.isArray(data)) {
-          const totalHeader = res.headers.get('x-total-count');
-          const totalFromHeader = totalHeader ? Number(totalHeader) : 0;
-
-          setPagedReviews(data);
-
-          if (totalFromHeader > 0) {
-            setTotalPages(Math.max(1, Math.ceil(totalFromHeader / perPage)));
-            return;
-          }
-
-          const allRes = await fetch(`/api/reviews/${id}`);
-          if (allRes.ok) {
-            const all = await allRes.json();
-            applyFallbackPagination(all);
-          }
-        } else if (data?.reviews) {
-          setPagedReviews(data.reviews);
-          const tot = Number(data.total ?? data.count ?? 0);
-          setTotalPages(tot > 0 ? Math.max(1, Math.ceil(tot / perPage)) : 1);
-        } else {
-          const allRes = await fetch(`/api/reviews/${id}`);
-          const all = await allRes.json();
-          applyFallbackPagination(all);
-        }
-      } else {
-        const allRes = await fetch(`/api/reviews/${id}`);
-        const all = await allRes.json();
-        applyFallbackPagination(all);
+      if (Array.isArray(data)) {
+        applyPagination(data);
+        return;
       }
+
+      if (data?.reviews) {
+        const normalizedReviews = Array.isArray(data.reviews) ? data.reviews : [];
+        setPagedReviews(normalizedReviews);
+        setReviews(normalizedReviews);
+        const tot = Number(data.total ?? data.count ?? 0);
+        setTotalPages(tot > 0 ? Math.max(1, Math.ceil(tot / perPage)) : 1);
+        return;
+      }
+
+      if (res.ok) {
+        applyPagination([]);
+        return;
+      }
+
+      const fallbackRes = await fetch(`/api/reviews/${id}`);
+      const fallbackData = await fallbackRes.json();
+      applyPagination(Array.isArray(fallbackData) ? fallbackData : fallbackData.reviews || []);
     } catch (err) {
       console.error('Fetch reviews failed', err);
       try {
-        const allRes = await fetch(`/api/reviews/${id}`);
-        const all = await allRes.json();
-        applyFallbackPagination(all);
+        const fallbackRes = await fetch(`/api/reviews/${id}`);
+        const fallbackData = await fallbackRes.json();
+        applyPagination(Array.isArray(fallbackData) ? fallbackData : fallbackData.reviews || []);
       } catch (e) {
         console.error('Fallback fetch reviews failed', e);
       }
@@ -149,7 +141,7 @@ export default function BookDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             {/* Book Cover */}
             <div className="lg:col-span-5">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-white p-4 shadow-2xl relative"
@@ -290,8 +282,8 @@ export default function BookDetails() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-secondary/20 transition-colors" />
                 <h4 className="text-xl font-serif text-white italic mb-2 relative z-10">Share Your Experience</h4>
                 <p className="text-white/60 text-xs font-light mb-8 relative z-10 leading-relaxed">Your feedback helps fellow readers discover their next great read.</p>
-                
-                <form 
+
+                <form
                   onSubmit={async (e: any) => {
                     e.preventDefault();
                     setSubmittingReview(true);
@@ -312,9 +304,20 @@ export default function BookDetails() {
                       });
                       const result = await res.json();
                       if (res.ok) {
-                        const reviewsRes = await fetch(`/api/reviews/${id}`);
+                        const reviewsRes = await fetch(`/api/reviews/${id}?page=1&limit=${perPage}`);
                         const reviewsData = await reviewsRes.json();
-                        setReviews(reviewsData);
+                        if (Array.isArray(reviewsData)) {
+                          setReviews(reviewsData);
+                          setPagedReviews(reviewsData);
+                          setTotalPages(Math.max(1, Math.ceil(reviewsData.length / perPage)));
+                        } else if (reviewsData?.reviews) {
+                          const normalizedReviews = Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [];
+                          setReviews(normalizedReviews);
+                          setPagedReviews(normalizedReviews);
+                          const tot = Number(reviewsData.total ?? reviewsData.count ?? 0);
+                          setTotalPages(tot > 0 ? Math.max(1, Math.ceil(tot / perPage)) : 1);
+                        }
+                        setCurrentPage(1);
                         setRating(0);
                         (e.target as HTMLFormElement).reset();
                       } else if (result.errors) {
@@ -341,9 +344,9 @@ export default function BookDetails() {
 
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Your Name</label>
-                    <input 
+                    <input
                       name="userName"
-                      type="text" 
+                      type="text"
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-secondary transition-colors"
                       placeholder="e.g. Ronak Patel"
                     />
@@ -360,13 +363,12 @@ export default function BookDetails() {
                           onMouseLeave={() => setHoverRating(0)}
                           className="focus:outline-none transition-transform hover:scale-110"
                         >
-                          <Star 
-                            size={20} 
-                            className={`transition-colors ${
-                              (hoverRating || rating) >= star 
-                                ? "text-secondary fill-secondary" 
+                          <Star
+                            size={20}
+                            className={`transition-colors ${(hoverRating || rating) >= star
+                                ? "text-secondary fill-secondary"
                                 : "text-white/10"
-                            }`}
+                              }`}
                           />
                         </button>
                       ))}
@@ -374,14 +376,14 @@ export default function BookDetails() {
                   </div>
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Review</label>
-                    <textarea 
+                    <textarea
                       name="comment"
                       rows={4}
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-secondary transition-colors resize-none"
                       placeholder="What did you think of this work?"
                     />
                   </div>
-                  <button 
+                  <button
                     type="submit"
                     disabled={submittingReview}
                     className="w-full bg-secondary text-primary font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-secondary/90 transition-all transform hover:-translate-y-1 shadow-lg shadow-black/20 disabled:opacity-50"

@@ -110,6 +110,8 @@ export default function Reviews() {
 
         {loading ? (
           <div className="py-24 text-center text-base italic text-primary/40">Loading reviews...</div>
+        ) : reviews.length === 0 ? (
+          <div className="py-24 text-center text-primary/40 italic">No reviews found yet. Check back later.</div>
         ) : (
           <>
             <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">

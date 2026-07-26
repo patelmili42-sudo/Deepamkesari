@@ -78,7 +78,7 @@ export default function About() {
             >
               <div className="absolute -inset-4 bg-secondary/5 rounded-[2rem] -rotate-3" />
               <img 
-                src="/assets/images/input_file_5.jpeg" 
+                src="/assets/images/BOOK_STACK2.jpeg" 
                 alt="Library" 
                 className="relative rounded-[2rem] shadow-2xl h-[600px] w-full object-cover"
               />

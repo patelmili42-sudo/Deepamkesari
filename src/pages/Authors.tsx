@@ -33,6 +33,8 @@ export default function Authors() {
 
         {loading ? (
           <div className="text-center py-20 font-serif italic text-primary/40">Gathering the literary elite...</div>
+        ) : authors.length === 0 ? (
+          <div className="py-20 text-center text-primary/40 italic">No authors available at the moment.</div>
         ) : (
           <div
             className={

@@ -5,7 +5,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import dotenv from 'dotenv';
-import fs from 'fs/promises';
 
 dotenv.config();
 
@@ -79,12 +78,6 @@ async function getDB() {
 }
 
 // Load Demo Data
-async function getDemoData() {
-  const dataPath = path.join(process.cwd(), 'src', 'data', 'demo.json');
-  const content = await fs.readFile(dataPath, 'utf-8');
-  return JSON.parse(content);
-}
-
 function normalizeReview(review: any) {
   const userName = typeof review?.userName === 'string' && review.userName.trim()
     ? review.userName.trim()
@@ -135,8 +128,7 @@ app.get('/api/books', async (req, res) => {
     }
   }
   
-  const data = await getDemoData();
-  res.json(data.books);
+  res.json([]);
 });
 
 app.get('/api/authors', async (req, res) => {
@@ -161,8 +153,7 @@ app.get('/api/authors', async (req, res) => {
     }
   }
   
-  const data = await getDemoData();
-  res.json(data.authors);
+  res.status(404).json({ message: 'Book not found' });
 });
 
 app.get('/api/books/:id', async (req, res) => {
@@ -351,11 +342,7 @@ app.get('/api/events', async (req, res) => {
     }
   }
 
-  const data = await getDemoData();
-  res.json((data.events || []).map((event: any) => ({
-    ...event,
-    galleryImages: event.galleryImages || [event.image]
-  })));
+  res.json([]);
 });
 
 app.get('/api/events/:id', async (req, res) => {
@@ -390,12 +377,7 @@ app.get('/api/events/:id', async (req, res) => {
     }
   }
 
-  const data = await getDemoData();
-  const event = (data.events || []).find((item: any) => item.id.toString() === id);
-  return event ? res.json({
-    ...event,
-    galleryImages: event.galleryImages || [event.image]
-  }) : res.status(404).json({ message: 'Event not found' });
+  return res.status(404).json({ message: 'Event not found' });
 });
 
 app.get('/api/reviews/:bookId', async (req, res) => {
@@ -425,8 +407,7 @@ app.get('/api/reviews/:bookId', async (req, res) => {
     }
   }
 
-  const data = await getDemoData();
-  const allReviews = [...(data.reviews || []), ...demoReviews]
+  const allReviews = demoReviews
     .filter((r: any) => String(r.bookId ?? r.book_id) === String(bookId))
     .map(normalizeReview);
   if (req.query.page) {
@@ -503,8 +484,7 @@ app.get('/api/reviews', async (req, res) => {
     }
   }
 
-  const data = await getDemoData();
-  const allReviews = [...(data.reviews || []), ...demoReviews].map(normalizeReview);
+  const allReviews = demoReviews.map(normalizeReview);
   if (req.query.page) {
     const reviews = allReviews.slice(offset, offset + limit);
     const averageRating = allReviews.length ? (allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length).toFixed(1) : '0.0';

@@ -17,7 +17,12 @@ export default function ReviewCard({ review, index = 0 }: ReviewCardProps) {
       })
     : 'Recently';
 
-  const normalizedComment = review.comment.trim();
+  const normalizedComment = (review.comment ?? '').toString().trim();
+  const displayComment = normalizedComment || 'A thoughtful review will be shared here soon.';
+  const displayName = typeof review.userName === 'string' && review.userName.trim()
+    ? review.userName.trim()
+    : 'Anonymous Reader';
+  const avatarLetter = displayName.charAt(0).toUpperCase() || 'R';
 
   return (
     <motion.div
@@ -57,7 +62,7 @@ export default function ReviewCard({ review, index = 0 }: ReviewCardProps) {
           <div
             className="h-[6.25rem] overflow-y-auto pr-1 text-[13px] leading-6 text-primary/80 italic [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
-            <p>“{normalizedComment}”</p>
+            <p>“{displayComment}”</p>
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#fffaf1] to-transparent" />
         </div>
@@ -66,10 +71,10 @@ export default function ReviewCard({ review, index = 0 }: ReviewCardProps) {
       <div className="relative z-10 mt-4 flex items-center justify-between gap-2 border-t border-primary/5 pt-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-[#2a2a2a] to-secondary text-sm font-bold text-white shadow-sm">
-            {review.userName.charAt(0)}
+            {avatarLetter}
           </div>
           <div className="min-w-0">
-            <h4 className="truncate text-[13px] font-semibold text-primary">{review.userName}</h4>
+            <h4 className="truncate text-[13px] font-semibold text-primary">{displayName}</h4>
             <p className="text-[9px] uppercase tracking-[0.22em] text-primary/40">Verified Reader</p>
           </div>
         </div>

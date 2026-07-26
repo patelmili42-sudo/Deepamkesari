@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ReviewCard from '../components/ReviewCard';
 import { Review } from '../types';
@@ -13,14 +13,20 @@ export default function Reviews() {
   useEffect(() => {
     const fetchAllReviews = async () => {
       try {
-        const res = await fetch('/api/books');
-        const books = await res.json();
+        const res = await fetch('/api/reviews');
+        const reviewsData = await res.json();
+        const normalizedReviews = Array.isArray(reviewsData)
+          ? reviewsData
+          : Array.isArray(reviewsData.reviews)
+            ? reviewsData.reviews
+            : [];
 
-        const reviewsPromises = books.map((book: any) => fetch(`/api/reviews/${book.id}`).then((r) => r.json()));
-        const allReviewsArrays = await Promise.all(reviewsPromises);
-        const allReviews = allReviewsArrays
-          .flat()
-          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const getTimestamp = (value: unknown) => {
+          const timestamp = new Date(value as string | number | Date | undefined).getTime();
+          return Number.isFinite(timestamp) ? timestamp : 0;
+        };
+
+        const allReviews = [...normalizedReviews].sort((a: any, b: any) => getTimestamp(b.createdAt) - getTimestamp(a.createdAt));
 
         setReviews(allReviews);
         setCurrentPage(1);

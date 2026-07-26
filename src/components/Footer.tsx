@@ -40,14 +40,14 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative overflow-hidden bg-[linear-gradient(135deg,#0d0d0d_0%,#181818_50%,#111111_100%)] text-white pt-20 pb-10">
+    <footer className="relative overflow-hidden bg-[linear-gradient(135deg,#0d0d0d_0%,#181818_50%,#111111_100%)] pb-8 pt-16 text-white sm:pt-20 sm:pb-10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(200,169,106,0.12),transparent_18%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_15%)]" />
       <div className="absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 rounded-full bg-secondary/5 blur-3xl" />
       <div className="absolute inset-0 opacity-10 [background-image:linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:32px_32px]" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 grid gap-6 md:grid-cols-2 xl:grid-cols-[1.1fr_0.8fr_0.9fr_1.1fr]">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+        <div className="mb-10 grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-[1.1fr_0.8fr_0.9fr_1.1fr]">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 shadow-[0_12px_35px_rgba(0,0,0,0.2)] backdrop-blur-sm sm:p-6">
             <Link to="/" className="inline-block">
               <Logo variant="light" size="lg" showImage={false} />
             </Link>
@@ -55,10 +55,10 @@ export default function Footer() {
               <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
               Since 2025
             </div>
-            <p className="mt-5 max-w-sm text-sm leading-6 text-white/65">
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/65 sm:text-[15px]">
               We publish stories, ideas, and knowledge that stay with readers long after the last page.
             </p>
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               {[
                 { href: 'https://wa.me/919664959238', icon: MessageCircle, label: 'WhatsApp' },
                 { href: '#', icon: Facebook, label: 'Facebook' },
@@ -78,9 +78,9 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <h3 className="mb-5 text-center text-base font-semibold text-secondary sm:text-left">Quick Links</h3>
-            <ul className="flex flex-col items-start space-y-3 sm:items-center">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 shadow-[0_12px_35px_rgba(0,0,0,0.2)] backdrop-blur-sm sm:p-6">
+            <h3 className="mb-4 text-center text-base font-semibold text-secondary sm:text-left">Quick Links</h3>
+            <ul className="flex flex-col items-center space-y-3 text-center sm:items-start sm:text-left">
               {[
                 ['Home', '/'],
                 ['Books', '/books'],
@@ -102,15 +102,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <h3 className="mb-5 text-center text-base font-semibold text-secondary sm:text-left">Contact</h3>
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 shadow-[0_12px_35px_rgba(0,0,0,0.2)] backdrop-blur-sm sm:p-6">
+            <h3 className="mb-4 text-center text-base font-semibold text-secondary sm:text-left">Contact</h3>
             <ul className="space-y-4">
               <li>
                 <a
                   href={CONTACT_MAP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 text-sm text-white/65 transition-colors hover:text-secondary"
+                  className="inline-flex items-start gap-3 text-sm text-white/65 transition-colors hover:text-secondary"
                 >
                   <span className="text-secondary">
                     <MapPin size={16} />
@@ -118,7 +118,7 @@ export default function Footer() {
                   <span className="break-words whitespace-normal">5/Gokul Complex, Bayad, Aravalli-383325, Gujarat, India</span>
                 </a>
               </li>
-              <li className="flex items-center gap-3 text-sm text-white/65">
+              <li className="flex items-start gap-3 text-sm text-white/65">
                 <a href={CONTACT_PHONE_URL} className="text-secondary">
                   <Phone size={16} />
                 </a>
@@ -127,7 +127,7 @@ export default function Footer() {
               <li>
                 <a
                   href={`mailto:${CONTACT_EMAIL}?subject=Inquiry%20from%20Deepam%20Kesari%20Website`}
-                  className="inline-flex items-center gap-3 text-sm text-white/65 transition-colors hover:text-secondary"
+                  className="inline-flex items-start gap-3 text-sm text-white/65 transition-colors hover:text-secondary"
                 >
                   <span className="text-secondary">
                     <Mail size={16} />
@@ -138,9 +138,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="rounded-3xl border border-secondary/20 bg-gradient-to-br from-secondary/10 via-white/5 to-white/5 p-6 backdrop-blur-sm">
+          <div className="rounded-[1.5rem] border border-secondary/20 bg-gradient-to-br from-secondary/10 via-white/5 to-white/5 p-5 shadow-[0_12px_35px_rgba(0,0,0,0.2)] backdrop-blur-sm sm:p-6">
             <h3 className="mb-3 text-center text-base font-semibold text-secondary sm:text-left">Newsletter</h3>
-            <p className="mb-5 text-sm leading-6 text-white/65">
+            <p className="mb-5 text-sm leading-6 text-white/65 sm:text-[15px]">
               Subscribe for new releases, author events, and literary highlights.
             </p>
             {status === 'success' ? (
@@ -177,8 +177,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 md:flex-row">
-          <p className="text-center text-[11px] text-white/40 md:text-left">
+        <div className="mt-2 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-center md:flex-row md:text-left">
+          <p className="text-[11px] text-white/40">
             © {currentYear} Deepam Kesari Publishing House. All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-[11px] text-white/40 sm:gap-6">

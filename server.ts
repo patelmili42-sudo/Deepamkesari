@@ -85,6 +85,27 @@ async function getDemoData() {
   return JSON.parse(content);
 }
 
+function normalizeReview(review: any) {
+  const userName = typeof review?.userName === 'string' && review.userName.trim()
+    ? review.userName.trim()
+    : (typeof review?.user_name === 'string' && review.user_name.trim()
+      ? review.user_name.trim()
+      : 'Anonymous Reader');
+
+  const comment = typeof review?.comment === 'string'
+    ? review.comment
+    : '';
+
+  return {
+    id: review?.id,
+    bookId: review?.bookId ?? review?.book_id,
+    userName,
+    rating: Number(review?.rating ?? 0),
+    comment,
+    createdAt: review?.createdAt ?? review?.created_at ?? new Date().toISOString()
+  };
+}
+
 // --- DATA ROUTES ---
 app.get('/api/books', async (req, res) => {
   const conn = await getDB();
@@ -392,14 +413,7 @@ app.get('/api/reviews/:bookId', async (req, res) => {
         'SELECT * FROM reviews WHERE book_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
         [bookId, limit, offset]
       );
-      const reviews = rows.map((r: any) => ({
-        id: r.id,
-        bookId: r.book_id,
-        userName: r.user_name,
-        rating: r.rating,
-        comment: r.comment,
-        createdAt: r.created_at
-      }));
+      const reviews = rows.map(normalizeReview);
 
       if (req.query.page) {
         return res.json({ reviews, total });
@@ -412,7 +426,9 @@ app.get('/api/reviews/:bookId', async (req, res) => {
   }
 
   const data = await getDemoData();
-  const allReviews = [...(data.reviews || []), ...demoReviews].filter(r => r.bookId.toString() === bookId);
+  const allReviews = [...(data.reviews || []), ...demoReviews]
+    .filter((r: any) => String(r.bookId ?? r.book_id) === String(bookId))
+    .map(normalizeReview);
   if (req.query.page) {
     const pagedReviews = allReviews.slice(offset, offset + limit);
     return res.json({ reviews: pagedReviews, total: allReviews.length });
@@ -471,26 +487,16 @@ app.get('/api/reviews', async (req, res) => {
           [limit, offset]
         );
         const reviews = rows.map((r: any) => ({
-          id: r.id,
-          bookId: r.book_id,
-          bookTitle: r.bookTitle,
-          userName: r.user_name,
-          rating: r.rating,
-          comment: r.comment,
-          createdAt: r.created_at
+          ...normalizeReview(r),
+          bookTitle: r.bookTitle
         }));
         return res.json({ reviews, total, averageRating, uniqueReaders });
       }
 
       const [rows]: any = await conn.execute('SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id ORDER BY r.created_at DESC');
       return res.json(rows.map((r: any) => ({
-        id: r.id,
-        bookId: r.book_id,
-        bookTitle: r.bookTitle,
-        userName: r.user_name,
-        rating: r.rating,
-        comment: r.comment,
-        createdAt: r.created_at
+        ...normalizeReview(r),
+        bookTitle: r.bookTitle
       })));
     } catch (err) {
       console.error('SQL Error fetching all reviews');
@@ -498,7 +504,7 @@ app.get('/api/reviews', async (req, res) => {
   }
 
   const data = await getDemoData();
-  const allReviews = [...(data.reviews || []), ...demoReviews];
+  const allReviews = [...(data.reviews || []), ...demoReviews].map(normalizeReview);
   if (req.query.page) {
     const reviews = allReviews.slice(offset, offset + limit);
     const averageRating = allReviews.length ? (allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length).toFixed(1) : '0.0';

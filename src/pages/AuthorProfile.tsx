@@ -16,6 +16,15 @@ export default function AuthorProfile() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const authorDetails = author
+    ? [author.academicPedigree, author.creativeFocus, author.performingArts].filter(Boolean)
+    : [];
+
+  const originalWorksContent = author?.creativeFocus || author?.literaryVision || '';
+
+  const showConnectSection = Boolean(author?.literaryVision || author?.creativeFocus || author?.academicPedigree || author?.performingArts);
+  const showBiographySection = Boolean(author?.bio);
+
   useEffect(() => {
     const fetchAuthorData = async () => {
       try {
@@ -93,7 +102,7 @@ export default function AuthorProfile() {
             
             {/* Sidebar info */}
             <div className="lg:col-span-4 space-y-12 relative z-10">
-              {(author.academicPedigree || author.creativeFocus || author.performingArts) && (
+              {authorDetails.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -145,7 +154,7 @@ export default function AuthorProfile() {
                   The screenshot shows the Biography Details card with the connect section at the bottom.
               */}
               
-              {author.id.toString() === '4' && (
+              {showConnectSection && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -206,8 +215,17 @@ export default function AuthorProfile() {
                   <p className="first-letter:text-5xl first-letter:font-serif first-letter:text-secondary first-letter:mr-3 first-letter:float-left">
                     {author.bio}
                   </p>
-                  
-                  {author.id.toString() === '4' ? (
+
+                  {originalWorksContent && (
+                    <div className="relative my-10 border border-primary/5 bg-white p-10 shadow-lg">
+                      <div className="absolute left-0 top-0 h-full w-2 bg-secondary" />
+                      <h4 className="mb-4 font-serif text-2xl italic text-primary">Original Literary Works</h4>
+                      <p className="text-lg leading-relaxed text-primary/70">
+                        {originalWorksContent}
+                      </p>
+                    </div>
+                  )}
+                  {showBiographySection ? (
                     <>
                       <p>
                         Deep Patel's writing explores themes of resilience, self-discovery, social understanding, and inner strength. For him, writing is not merely a profession but a responsibility—to reflect truth, inspire courage, and create stories that leave a thoughtful and lasting impact on readers across generations.

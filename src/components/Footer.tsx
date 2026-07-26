@@ -46,7 +46,7 @@ export default function Footer() {
       <div className="absolute inset-0 opacity-10 [background-image:linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:32px_32px]" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 grid gap-6 lg:grid-cols-[1.1fr_0.8fr_0.9fr_1.1fr]">
+        <div className="mb-16 grid gap-6 md:grid-cols-2 xl:grid-cols-[1.1fr_0.8fr_0.9fr_1.1fr]">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
             <Link to="/" className="inline-block">
               <Logo variant="light" size="lg" showImage={false} />
@@ -79,8 +79,8 @@ export default function Footer() {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <h3 className="mb-5 text-base font-semibold text-secondary text-center">Quick Links</h3>
-            <ul className="space-y-3 flex flex-col items-center">
+            <h3 className="mb-5 text-center text-base font-semibold text-secondary sm:text-left">Quick Links</h3>
+            <ul className="flex flex-col items-start space-y-3 sm:items-center">
               {[
                 ['Home', '/'],
                 ['Books', '/books'],
@@ -103,7 +103,7 @@ export default function Footer() {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <h3 className="mb-5 text-base font-semibold text-secondary text-center">Contact</h3>
+            <h3 className="mb-5 text-center text-base font-semibold text-secondary sm:text-left">Contact</h3>
             <ul className="space-y-4">
               <li>
                 <a
@@ -115,14 +115,14 @@ export default function Footer() {
                   <span className="text-secondary">
                     <MapPin size={16} />
                   </span>
-                  <span>5/Gokul Complex, Bayad, Aravalli-383325, Gujarat, India</span>
+                  <span className="break-words whitespace-normal">5/Gokul Complex, Bayad, Aravalli-383325, Gujarat, India</span>
                 </a>
               </li>
               <li className="flex items-center gap-3 text-sm text-white/65">
                 <a href={CONTACT_PHONE_URL} className="text-secondary">
                   <Phone size={16} />
                 </a>
-                <span>{CONTACT_PHONE}</span>
+                <span className="break-words whitespace-normal">{CONTACT_PHONE}</span>
               </li>
               <li>
                 <a
@@ -132,14 +132,14 @@ export default function Footer() {
                   <span className="text-secondary">
                     <Mail size={16} />
                   </span>
-                  <span>{CONTACT_EMAIL}</span>
+                  <span className="break-words whitespace-normal">{CONTACT_EMAIL}</span>
                 </a>
               </li>
             </ul>
           </div>
 
           <div className="rounded-3xl border border-secondary/20 bg-gradient-to-br from-secondary/10 via-white/5 to-white/5 p-6 backdrop-blur-sm">
-            <h3 className="mb-3 text-base font-semibold text-secondary text-center">Newsletter</h3>
+            <h3 className="mb-3 text-center text-base font-semibold text-secondary sm:text-left">Newsletter</h3>
             <p className="mb-5 text-sm leading-6 text-white/65">
               Subscribe for new releases, author events, and literary highlights.
             </p>
@@ -181,7 +181,7 @@ export default function Footer() {
           <p className="text-center text-[11px] text-white/40 md:text-left">
             © {currentYear} Deepam Kesari Publishing House. All rights reserved.
           </p>
-          <div className="flex gap-6 text-[11px] text-white/40">
+          <div className="flex flex-wrap justify-center gap-4 text-[11px] text-white/40 sm:gap-6">
             <a href="#" className="transition hover:text-white">Privacy Policy</a>
             <a href="#" className="transition hover:text-white">Terms of Service</a>
           </div>

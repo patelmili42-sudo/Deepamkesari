@@ -14,7 +14,10 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "https://deepamkesari.onrender.com",
+  credentials: true
+}));
 app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/assets', express.static(path.join(process.cwd(), 'public/assets')));
@@ -49,7 +52,7 @@ app.get('/:file.webp', (req, res, next) => {
 
 // Database connection helper (Kept for potential futura SQL usage)
 let db: mysql.Connection | null = null;
-const USE_MYSQL = process.env.DB_HOST && process.env.DB_NAME;
+const USE_MYSQL = process.env.DB_HOST && process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME;
 
 async function getDB() {
   if (!USE_MYSQL) return null;
@@ -57,9 +60,14 @@ async function getDB() {
     try {
       db = await mysql.createConnection({
         host: process.env.DB_HOST,
-        user: process.env.DB_USER || 'root',
+        user: process.env.DB_USER || '',
         password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME
+        database: process.env.DB_NAME,
+        port: Number(process.env.DB_PORT),
+        ssl: {
+          rejectUnauthorized: false
+        },
+        connectTimeout: 30000
       });
       console.log('Connected to MySQL');
     } catch (err: any) {

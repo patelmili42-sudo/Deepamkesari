@@ -54,7 +54,7 @@ export default function HeroSlider() {
   const prev = () => setCurrent((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
 
   return (
-    <section className="relative min-h-[640px] w-full overflow-hidden bg-primary text-white sm:min-h-[720px] lg:h-[80vh] lg:min-h-[620px]">
+    <section className="relative min-h-[720px] w-full overflow-hidden bg-primary text-white sm:min-h-[760px] lg:h-[80vh] lg:min-h-[620px]">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
@@ -72,8 +72,8 @@ export default function HeroSlider() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
 
           {/* Content & Main Image Layout */}
-          <div className="relative h-full max-w-7xl mx-auto px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-0 flex items-center">
-            <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-16 items-center w-full">
+          <div className="relative mx-auto flex h-full max-w-7xl items-center px-4 py-14 pb-24 sm:px-6 sm:py-20 sm:pb-28 lg:px-8 lg:py-0">
+            <div className="grid w-full grid-cols-1 items-center gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-16">
               {/* Text Content */}
               <motion.div
                 initial={{ x: -30, opacity: 0 }}
@@ -81,17 +81,17 @@ export default function HeroSlider() {
                 transition={{ delay: 0.3, duration: 0.8 }}
                 className="z-10 max-w-2xl"
               >
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif text-white mb-6 leading-tight">
+                <h1 className="mb-6 text-3xl font-serif leading-tight text-white sm:text-4xl md:text-6xl lg:text-7xl">
                   {SLIDES[current].title}
                 </h1>
-                <p className="text-base sm:text-lg md:text-xl text-white/80 mb-8 sm:mb-10 max-w-2xl font-light leading-relaxed">
+                <p className="mb-8 max-w-2xl text-sm font-light leading-relaxed text-white/80 sm:mb-10 sm:text-lg md:text-xl">
                   {SLIDES[current].subtitle}
                 </p>
-                
-                <div className="flex items-center gap-3 pb-1 flex-nowrap">
+
+                <div className="flex flex-wrap items-center gap-3 pb-1">
                   <Link
                     to={SLIDES[current].primaryAction.link}
-                    className="bg-secondary text-primary px-6 py-3 rounded-md font-medium text-xs sm:text-sm hover:bg-secondary/90 transition-all transform hover:-translate-y-1 whitespace-nowrap"
+                    className="rounded-md bg-secondary px-4 py-3 text-[11px] font-medium text-primary transition-all duration-300 hover:-translate-y-1 hover:bg-secondary/90 sm:px-6 sm:text-sm"
                   >
                     {SLIDES[current].primaryAction.label}
                   </Link>
@@ -100,7 +100,7 @@ export default function HeroSlider() {
                       href={SLIDES[current].secondaryAction.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-md font-medium text-xs sm:text-sm hover:bg-white/20 transition-all flex items-center transform hover:-translate-y-1 whitespace-nowrap"
+                      className="flex items-center rounded-md border border-white/20 bg-white/10 px-4 py-3 text-[11px] font-medium text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/20 sm:px-6 sm:text-sm"
                     >
                       {SLIDES[current].icon}
                       <span className="ml-2">{SLIDES[current].secondaryAction.label}</span>
@@ -111,7 +111,7 @@ export default function HeroSlider() {
                       href={SLIDES[0].tertiaryAction.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-white text-primary px-6 py-3 rounded-md font-medium text-xs sm:text-sm hover:bg-white/90 transition-all flex items-center transform hover:-translate-y-1 whitespace-nowrap"
+                      className="flex items-center rounded-md bg-white px-4 py-3 text-[11px] font-medium text-primary transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 sm:px-6 sm:text-sm"
                     >
                       <ShoppingBag size={18} />
                       <span className="ml-2">{SLIDES[0].tertiaryAction.label}</span>
@@ -125,14 +125,14 @@ export default function HeroSlider() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 1 }}
-                className="flex justify-center lg:justify-end"
+                className="mt-6 flex justify-center lg:mt-0 lg:justify-end"
               >
                 <div className="relative group w-full max-w-sm sm:max-w-md lg:max-w-none">
                   <div className="absolute -inset-8 bg-secondary/10 rounded-xl blur-2xl group-hover:bg-secondary/20 transition-all" />
                   <img
                     src={SLIDES[current].image}
                     alt={SLIDES[current].title}
-                    className="relative w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[520px] max-h-[360px] sm:max-h-[420px] lg:max-h-[500px] object-contain rounded-2xl shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]"
+                    className="relative mx-auto w-full max-w-[260px] max-h-[320px] rounded-2xl object-contain shadow-2xl transition-transform duration-500 group-hover:scale-[1.02] sm:max-w-[360px] sm:max-h-[400px] lg:max-w-[520px] lg:max-h-[500px]"
                     onError={(e: any) => {
                       (e.target as HTMLImageElement).src = SLIDES[current].fallback;
                     }}

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Author, Book } from '../types';
 import { MessageCircle, Mail, Award, User as UserIcon, Instagram, ChevronRight } from 'lucide-react';
+import { bookSlug } from '../lib/utils';
 
 const fallbackAuthorImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800';
 
@@ -288,7 +289,7 @@ export default function AuthorProfile() {
                           <div className="flex flex-col justify-center">
                             <h4 className="text-xl font-serif text-primary mb-2 line-clamp-1">{book.title}</h4>
                             <span className="text-[10px] uppercase tracking-widest text-primary/40 font-bold mb-3">{book.category}</span>
-                            <Link to={`/books/${book.id}`} className="text-xs font-bold text-secondary group flex items-center">
+                            <Link to={`/books/${encodeURIComponent(bookSlug(book.title))}`} className="text-xs font-bold text-secondary group flex items-center">
                               READ MORE <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
                             </Link>
                           </div>

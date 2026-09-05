@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Book as BookType } from '../types';
 import { ASSETS } from '../constants/assets';
+import { bookSlug } from '../lib/utils';
 
 interface BookCardProps {
   book: BookType;
@@ -17,6 +18,8 @@ const handleImageError = (event: { currentTarget: HTMLImageElement }) => {
 };
 
 export default function BookCard({ book, index = 0 }: BookCardProps) {
+  const bookPath = `/books/${encodeURIComponent(bookSlug(book.title))}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,13 +38,13 @@ export default function BookCard({ book, index = 0 }: BookCardProps) {
         <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors duration-300" />
         <div className="absolute bottom-4 left-4 right-4 translate-y-12 group-hover:translate-y-0 transition-transform duration-300 space-y-2">
           <Link
-            to={`/books/${book.id}`}
+            to={bookPath}
             className="block w-full bg-white text-primary text-center py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all"
           >
             READ MORE
           </Link>
           <Link
-            to={`/books/${book.id}#review-form`}
+            to={`${bookPath}#review-form`}
             className="block w-full bg-primary/80 backdrop-blur-sm text-white text-center py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-secondary hover:text-primary transition-colors"
           >
             Give Review

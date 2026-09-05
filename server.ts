@@ -100,6 +100,14 @@ function normalizeReview(review: any) {
 }
 
 // --- DATA ROUTES ---
+const bookSlug = (title: string) => title
+  .normalize('NFKD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .trim()
+  .replace(/[^\p{L}\p{N}]+/gu, '-')
+  .replace(/^-+|-+$/g, '');
+
 app.get('/api/books', async (req, res) => {
   const conn = await getDB();
   if (conn) {
@@ -162,12 +170,21 @@ app.get('/api/books/:id', async (req, res) => {
   
   if (conn) {
     try {
-      const [rows]: any = await conn.execute(`
+      let [rows]: any = await conn.execute(`
         SELECT b.*, a.name as authorName 
         FROM books b 
         LEFT JOIN authors a ON b.author_id = a.id
         WHERE b.id = ?
       `, [id]);
+
+      if (rows.length === 0) {
+        const [allRows]: any = await conn.execute(`
+          SELECT b.*, a.name as authorName
+          FROM books b
+          LEFT JOIN authors a ON b.author_id = a.id
+        `);
+        rows = allRows.filter((book: any) => bookSlug(book.title) === id);
+      }
       
       if (rows.length > 0) {
         const b = rows[0];
@@ -192,7 +209,7 @@ app.get('/api/books/:id', async (req, res) => {
   }
 
   const data = await getDemoData();
-  const book = data.books.find((b: any) => b.id.toString() === id);
+  const book = data.books.find((b: any) => b.id.toString() === id || bookSlug(b.title) === id);
   return book ? res.json(book) : res.status(404).json({ message: 'Book not found' });
 });
 

@@ -22,6 +22,7 @@ export default function BookDetails() {
   const [reviewErrors, setReviewErrors] = useState<string[]>([]);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [mainImage, setMainImage] = useState<string | null>(null);
+  const bookId = book?.id;
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -38,7 +39,7 @@ export default function BookDetails() {
         // Fetch related or all books as fallback
         const allRes = await fetch('/api/books');
         const allData = await allRes.json();
-        setRelatedBooks(allData.filter((b: Book) => b.id.toString() !== id).slice(0, 4));
+        setRelatedBooks(allData.filter((b: Book) => b.id.toString() !== data.id.toString()).slice(0, 4));
 
         // Handle hash scroll after content is loaded
         if (window.location.hash === '#review-form') {
@@ -57,12 +58,12 @@ export default function BookDetails() {
   }, [id]);
 
   useEffect(() => {
-    if (id) fetchReviewsPage(currentPage);
+    if (bookId) fetchReviewsPage(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, bookId]);
 
   const fetchReviewsPage = async (page: number = 1) => {
-    if (!id) return;
+    if (!bookId) return;
     setLoadingReviews(true);
 
     const applyPagination = (all: Review[]) => {
@@ -73,7 +74,7 @@ export default function BookDetails() {
     };
 
     try {
-      const res = await fetch(`/api/reviews/${id}?page=${page}&limit=${perPage}`);
+      const res = await fetch(`/api/reviews/${bookId}?page=${page}&limit=${perPage}`);
       const data = await res.json();
 
       if (Array.isArray(data)) {
@@ -95,13 +96,13 @@ export default function BookDetails() {
         return;
       }
 
-      const fallbackRes = await fetch(`/api/reviews/${id}`);
+      const fallbackRes = await fetch(`/api/reviews/${bookId}`);
       const fallbackData = await fallbackRes.json();
       applyPagination(Array.isArray(fallbackData) ? fallbackData : fallbackData.reviews || []);
     } catch (err) {
       console.error('Fetch reviews failed', err);
       try {
-        const fallbackRes = await fetch(`/api/reviews/${id}`);
+        const fallbackRes = await fetch(`/api/reviews/${bookId}`);
         const fallbackData = await fallbackRes.json();
         applyPagination(Array.isArray(fallbackData) ? fallbackData : fallbackData.reviews || []);
       } catch (e) {
@@ -290,7 +291,7 @@ export default function BookDetails() {
                     setReviewErrors([]);
                     const formData = new FormData(e.currentTarget);
                     const reviewData = {
-                      bookId: id,
+                      bookId,
                       userName: formData.get('userName'),
                       rating: Number(rating),
                       comment: formData.get('comment')
@@ -304,7 +305,7 @@ export default function BookDetails() {
                       });
                       const result = await res.json();
                       if (res.ok) {
-                        const reviewsRes = await fetch(`/api/reviews/${id}?page=1&limit=${perPage}`);
+                        const reviewsRes = await fetch(`/api/reviews/${bookId}?page=1&limit=${perPage}`);
                         const reviewsData = await reviewsRes.json();
                         if (Array.isArray(reviewsData)) {
                           setReviews(reviewsData);

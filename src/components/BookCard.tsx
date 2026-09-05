@@ -18,7 +18,7 @@ const handleImageError = (event: { currentTarget: HTMLImageElement }) => {
 };
 
 export default function BookCard({ book, index = 0 }: BookCardProps) {
-  const bookPath = `/books/${encodeURIComponent(bookSlug(book.title))}`;
+  const bookPath = `/books/${encodeURIComponent(String(bookSlug(book.title)))}`;
 
   return (
     <motion.div

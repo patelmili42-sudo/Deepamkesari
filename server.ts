@@ -683,8 +683,8 @@ app.get('/api/events/:id', async (req, res) => {
 
 app.get('/api/reviews/:bookId', async (req, res) => {
   const { bookId } = req.params;
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 6;
+  const page = Math.max(1, Number.parseInt(String(req.query.page || '1'), 10) || 1);
+  const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit || '6'), 10) || 6));
   const offset = (page - 1) * limit;
   const conn = await getDB();
   
@@ -693,8 +693,8 @@ app.get('/api/reviews/:bookId', async (req, res) => {
       const [countRows]: any = await conn.execute('SELECT COUNT(*) as total FROM reviews WHERE book_id = ?', [bookId]);
       const total = Number(countRows[0]?.total || 0);
       const [rows]: any = await conn.execute(
-        'SELECT * FROM reviews WHERE book_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
-        [bookId, limit, offset]
+        `SELECT * FROM reviews WHERE book_id = ? ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+        [bookId]
       );
       const reviews = rows.map(normalizeReview);
 
@@ -704,7 +704,7 @@ app.get('/api/reviews/:bookId', async (req, res) => {
 
       return res.json(reviews);
     } catch (err) {
-      console.error('SQL Error fetching reviews');
+      console.error('SQL Error fetching reviews:', err);
     }
   }
 

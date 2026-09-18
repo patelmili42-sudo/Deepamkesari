@@ -5,6 +5,7 @@ import BookCard from '../components/BookCard';
 import { Book } from '../types';
 import { CATEGORIES, LANGUAGES } from '../constants';
 import { Search, Filter, X } from 'lucide-react';
+import { Seo } from '../components/SEO';
 
 export default function Books() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,6 +47,12 @@ export default function Books() {
 
   return (
     <div className="bg-bg min-h-screen py-20 px-4 sm:px-6 lg:px-8">
+      <Seo
+        title="Books in Gujarati, Hindi and English | Deepam Kesari Publishing House"
+        description="Explore books published by Deepam Kesari Publishing House in Gujarati, Hindi and English, including works by our authors and translators."
+        path="/books"
+        keywords="Deepam Kesari books, Gujarati books, Hindi books, English books, Indian publisher, Gujarati literature, rasto kari javana, રસ્તો કરી જવાના, gujarati books, hindi books, english books, indian literature, indian authors, रास्तो करी जवाना"
+      />
       <div className="max-w-7xl mx-auto">
         <header className="mb-16 text-center">
           <h2 className="text-[10px] uppercase tracking-[0.3em] text-secondary font-bold mb-4">The Catalog</h2>

@@ -35,3 +35,7 @@ export function bookSlug(title: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+export function authorSlug(name: string): string {
+  return bookSlug(name);
+}

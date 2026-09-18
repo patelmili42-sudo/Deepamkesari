@@ -4,6 +4,7 @@ import mysql from 'mysql2/promise';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import fs from 'fs/promises';
 import dotenv from 'dotenv';
 import { bookSlug } from './src/lib/utils';
 
@@ -11,6 +12,148 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
+const SITE_URL = process.env.PUBLIC_SITE_URL || 'https://deepamkesari.onrender.com';
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function seoJson(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c');
+}
+
+async function getSeoBook(slug: string) {
+  const conn = await getDB();
+  if (!conn) return null;
+  const [rows]: any = await conn.execute(`
+    SELECT b.*, a.name as authorName
+    FROM books b
+    LEFT JOIN authors a ON b.author_id = a.id
+  `);
+  const row = rows.find((book: any) => String(book.id) === slug || bookSlug(book.title) === slug);
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    authorId: row.author_id,
+    authorName: row.authorName,
+    coverImage: row.cover_image,
+    description: row.description || '',
+    isbn: row.isbn || '',
+    category: row.category || '',
+    language: row.language || '',
+  };
+}
+
+async function getSeoAuthor(slug: string) {
+  const conn = await getDB();
+  if (!conn) return null;
+  const [rows]: any = await conn.execute('SELECT * FROM authors');
+  const row = rows.find((author: any) => String(author.id) === slug || bookSlug(author.name) === slug);
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    photo: row.photo,
+    bio: row.bio || '',
+    role: row.role || 'Author',
+  };
+}
+
+async function renderSeoDocument(requestPath: string, metadata: {
+  title: string;
+  description: string;
+  image?: string;
+  schema?: Record<string, unknown>;
+  text: string;
+}) {
+  const templatePath = path.join(process.cwd(), 'dist', 'index.html');
+  let html = await fs.readFile(templatePath, 'utf8');
+  const canonical = `${SITE_URL}${requestPath}`;
+  const image = metadata.image ? `<meta property="og:image" content="${escapeHtml(metadata.image)}" />` : '';
+  const schema = metadata.schema ? `<script type="application/ld+json">${seoJson(metadata.schema)}</script>` : '';
+  const head = `
+    <title>${escapeHtml(metadata.title)}</title>
+    <meta name="description" content="${escapeHtml(metadata.description)}" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="${escapeHtml(canonical)}" />
+    <meta property="og:title" content="${escapeHtml(metadata.title)}" />
+    <meta property="og:description" content="${escapeHtml(metadata.description)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${escapeHtml(canonical)}" />
+    <meta property="og:site_name" content="Deepam Kesari Publishing House" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(metadata.title)}" />
+    <meta name="twitter:description" content="${escapeHtml(metadata.description)}" />
+    ${image}
+    ${schema}`;
+  html = html.replace('</head>', `${head}\n</head>`);
+  html = html.replace('<div id="root"></div>', `<div id="root"><main><h1>${escapeHtml(metadata.text)}</h1><p>${escapeHtml(metadata.description)}</p></main></div>`);
+  return html;
+}
+
+async function sendSeoRoute(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (process.env.NODE_ENV !== 'production') return next();
+  try {
+    if (req.path.startsWith('/books/')) {
+      const book = await getSeoBook(req.params.slug);
+      if (book) {
+        const url = `${SITE_URL}/books/${bookSlug(book.title)}`;
+        return res.send(await renderSeoDocument(`/books/${bookSlug(book.title)}`, {
+          title: `${book.title} | ${book.authorName || 'Book'} | Deepam Kesari Publishing House`,
+          description: `${book.title} by ${book.authorName || 'the author'}, published by Deepam Kesari Publishing House. ${book.description}`.slice(0, 158),
+          image: book.coverImage,
+          text: book.title,
+          schema: {
+            '@context': 'https://schema.org',
+            '@type': 'Book',
+            '@id': `${url}#book`,
+            name: book.title,
+            url,
+            description: book.description,
+            image: book.coverImage,
+            isbn: book.isbn || undefined,
+            inLanguage: book.language,
+            genre: book.category,
+            author: { '@type': 'Person', name: book.authorName || String(book.authorId) },
+            publisher: { '@type': 'Organization', name: 'Deepam Kesari Publishing House', url: SITE_URL },
+          },
+        }));
+      }
+    }
+    if (req.path.startsWith('/authors/')) {
+      const author = await getSeoAuthor(req.params.slug);
+      if (author) {
+        const url = `${SITE_URL}/authors/${bookSlug(author.name)}`;
+        return res.send(await renderSeoDocument(`/authors/${bookSlug(author.name)}`, {
+          title: `${author.name} | Author | Deepam Kesari Publishing House`,
+          description: `${author.name} is a ${author.role.toLowerCase()} featured by Deepam Kesari Publishing House. ${author.bio}`.slice(0, 158),
+          image: author.photo,
+          text: author.name,
+          schema: {
+            '@context': 'https://schema.org',
+            '@type': 'Person',
+            '@id': `${url}#person`,
+            name: author.name,
+            url,
+            image: author.photo,
+            description: author.bio,
+            jobTitle: author.role,
+            worksFor: { '@type': 'Organization', name: 'Deepam Kesari Publishing House', url: SITE_URL },
+          },
+        }));
+      }
+    }
+  } catch (error) {
+    console.error('SEO route rendering failed', error);
+  }
+  next();
+}
 
 // Middleware
 app.use(express.json());
@@ -19,6 +162,23 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+app.get('/books/:slug', sendSeoRoute);
+app.get('/authors/:slug', sendSeoRoute);
+app.get('/sitemap.xml', async (_req, res) => {
+  const conn = await getDB();
+  const staticPaths = ['/', '/books', '/authors', '/gallery', '/about', '/contact'];
+  let detailPaths: string[] = [];
+  if (conn) {
+    const [books]: any = await conn.execute('SELECT title FROM books');
+    const [authors]: any = await conn.execute('SELECT name FROM authors');
+    detailPaths = [
+      ...books.map((book: any) => `/books/${bookSlug(book.title)}`),
+      ...authors.map((author: any) => `/authors/${bookSlug(author.name)}`),
+    ];
+  }
+  const urls = [...staticPaths, ...detailPaths].map((url) => `<url><loc>${SITE_URL}${url}</loc></url>`).join('');
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
+});
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/assets', express.static(path.join(process.cwd(), 'public/assets')));
 app.use('/public', express.static(path.join(process.cwd(), 'public')));
@@ -50,35 +210,71 @@ app.get('/:file.webp', (req, res, next) => {
   });
 });
 
-// Database connection helper (Kept for potential futura SQL usage)
-let db: mysql.Connection | null = null;
-const USE_MYSQL = process.env.DB_HOST && process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME;
+// Keep a pool instead of one long-lived connection. A single connection can be
+// closed by the provider while the process is still running.
+let db: mysql.Pool | null = null;
+let dbInitialization: Promise<mysql.Pool | null> | null = null;
+const USE_MYSQL = Boolean(
+  process.env.DB_HOST &&
+  process.env.DB_USER &&
+  process.env.DB_PASSWORD &&
+  process.env.DB_NAME
+);
 
-async function getDB() {
+async function getDB(): Promise<mysql.Pool | null> {
   if (!USE_MYSQL) return null;
-  if (!db) {
+
+  if (db) return db;
+  if (dbInitialization) return dbInitialization;
+
+  dbInitialization = (async () => {
+    const pool = mysql.createPool({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+      ssl: {
+        rejectUnauthorized: false
+      },
+      connectTimeout: 30000
+    });
+
     try {
-      db = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER || '',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME,
-        port: Number(process.env.DB_PORT),
-        ssl: {
-          rejectUnauthorized: false
-        },
-        connectTimeout: 30000
-      });
-      console.log('Connected to MySQL');
+      const connection = await pool.getConnection();
+      connection.release();
+      db = pool;
+      console.log('Connected to MySQL pool');
+      return db;
     } catch (err: any) {
+      await pool.end().catch(() => undefined);
       console.warn('MySQL connection failed, using Demo Mode.', err.message);
       return null;
     }
+  })();
+
+  try {
+    return await dbInitialization;
+  } finally {
+    dbInitialization = null;
   }
-  return db;
 }
 
 // Load Demo Data
+async function getDemoData() {
+  try {
+    const raw = await fs.readFile(path.join(process.cwd(), 'src/data/demo.json'), 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return { books: [], authors: [], reviews: [] };
+  }
+}
+
 function normalizeReview(review: any) {
   const userName = typeof review?.userName === 'string' && review.userName.trim()
     ? review.userName.trim()

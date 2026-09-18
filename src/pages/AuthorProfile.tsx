@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { Author, Book } from '../types';
 import { MessageCircle, Mail, Award, User as UserIcon, Instagram, ChevronRight } from 'lucide-react';
 import { bookSlug } from '../lib/utils';
+import { Seo, authorSchema } from '../components/SEO';
 
 const fallbackAuthorImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800';
 
@@ -31,12 +32,12 @@ export default function AuthorProfile() {
       try {
         const res = await fetch('/api/authors');
         const authorsData = await res.json();
-        const currentAuthor = authorsData.find((a: any) => a.id.toString() === id);
+        const currentAuthor = authorsData.find((a: any) => a.id.toString() === id || bookSlug(a.name) === id);
         setAuthor(currentAuthor);
 
         const booksRes = await fetch('/api/books');
         const booksData = await booksRes.json();
-        setBooks(booksData.filter((b: any) => b.authorId.toString() === id));
+        setBooks(booksData.filter((b: any) => currentAuthor && b.authorId.toString() === currentAuthor.id.toString()));
       } catch (err) {
         console.error('Failed to fetch author data', err);
       } finally {
@@ -58,8 +59,21 @@ export default function AuthorProfile() {
     </div>
   );
 
+  const authorDescription = `${author.name} is a ${author.role.toLowerCase()} featured by Deepam Kesari Publishing House. ${author.bio}`;
+
   return (
     <div className="bg-bg min-h-screen">
+      <Seo
+        title={`${author.name} | Author | Deepam Kesari Publishing House`}
+        description={authorDescription.slice(0, 158)}
+        path={`/authors/${bookSlug(author.name)}`}
+        keywords={`${author.name}, ${author.name} books, ${author.name} author, Deepam Kesari, Gujarati author, Hindi author`}
+        image={author.photo}
+        schema={authorSchema(author, books)}
+      />
+      <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl px-4 pt-6 text-sm text-primary/60 sm:px-6 lg:px-8">
+        <Link to="/">Deepam Kesari Publishing House</Link> / <Link to="/authors">Authors</Link> / <span>{author.name}</span>
+      </nav>
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[600px] overflow-hidden">
         <div className="absolute inset-0 bg-primary/40 z-10" />
@@ -269,7 +283,7 @@ export default function AuthorProfile() {
                     <div className="flex items-center justify-between mb-10 border-b border-primary/5 pb-4">
                       <h3 className="text-3xl font-serif text-primary italic m-0">Recent Publications</h3>
                       <Link 
-                        to={`/books?authorId=${id}`} 
+                        to={`/books?authorId=${author.id}`} 
                         className="text-xs font-bold text-secondary hover:text-primary transition-all hover:underline z-10"
                       >
                         View All Books

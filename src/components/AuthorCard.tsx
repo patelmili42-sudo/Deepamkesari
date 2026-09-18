@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Author } from '../types';
 import { Link } from 'react-router-dom';
 import { ASSETS } from '../constants/assets';
+import { authorSlug } from '../lib/utils';
 
 interface AuthorCardProps {
   author: Author;
@@ -46,7 +47,7 @@ export default function AuthorCard({ author, index = 0 }: AuthorCardProps) {
       </p>
       
       <Link 
-        to={`/authors/${author.id}`}
+        to={`/authors/${authorSlug(author.name)}`}
         className="inline-block mt-4 text-xs font-bold text-primary hover:text-secondary uppercase tracking-widest transition-colors"
       >
         View Profile

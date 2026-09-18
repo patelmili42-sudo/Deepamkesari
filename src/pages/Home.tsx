@@ -8,6 +8,7 @@ import AuthorCard from '../components/AuthorCard';
 import ReviewCard from '../components/ReviewCard';
 import { Book, Author, Review } from '../types';
 import { ASSETS } from '../constants/assets';
+import { Seo } from '../components/SEO';
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -41,6 +42,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col w-full">
+      <Seo
+        title="Deepam Kesari Publishing House | Gujarati, Hindi and English Books"
+        description="Deepam Kesari Publishing House publishes meaningful Gujarati, Hindi and English books by Indian authors, writers and translators."
+        path="/"
+        keywords="Deepam Kesari Publishing House, Deepam Kesari books, Gujarati publisher, Hindi publisher, English books, Indian authors, Indian literature, gujarati books, hindi books, english books, indian writers, indian translators, rasto kari javana, રસ્તો કરી જવાના, रास्तो करी जवाना"
+      />
       <HeroSlider />
 
       {/* About Section */}

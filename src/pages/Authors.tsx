@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import AuthorCard from '../components/AuthorCard';
 import ManuscriptForm from '../components/ManuscriptForm';
 import { Author } from '../types';
+import { Seo } from '../components/SEO';
 
 export default function Authors() {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -24,6 +25,12 @@ export default function Authors() {
 
   return (
     <div className="bg-bg min-h-screen py-24 px-4 sm:px-6 lg:px-8">
+      <Seo
+        title="Authors and Translators | Deepam Kesari Publishing House"
+        description="Meet the authors and translators published by Deepam Kesari Publishing House and explore their books, biographies and literary work."
+        path="/authors"
+        keywords="Deepam Kesari authors, Gujarati authors, Hindi authors, Indian writers, book authors, literary translators, Indian literature, gujarati authors, hindi authors, indian writers, indian literature, रास्तो करी जवाना, રસ્તો કરી જવાના, rasto kari javana"
+      />
       <div className="max-w-7xl mx-auto">
         <header className="mb-20 text-center">
           <h2 className="text-[10px] uppercase tracking-[0.3em] text-secondary font-bold mb-4">The Minds Behind the Pages</h2>

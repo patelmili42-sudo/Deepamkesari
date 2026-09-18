@@ -5,6 +5,8 @@ import { ShoppingBag, MessageCircle, ArrowLeft, BookOpen, Hash, Globe, Tag, Star
 import { Book, Review } from '../types';
 import ReviewCard from '../components/ReviewCard';
 import BookCard from '../components/BookCard';
+import { Seo, bookSchema } from '../components/SEO';
+import { bookSlug } from '../lib/utils';
 
 export default function BookDetails() {
   const { id } = useParams<{ id: string }>();
@@ -128,6 +130,17 @@ export default function BookDetails() {
 
   return (
     <div className="bg-bg min-h-screen">
+      <Seo
+        title={`${book.title} | ${book.authorName || 'Book'} | Deepam Kesari Publishing House`}
+        description={`${book.title} by ${book.authorName || 'the author'}, published by Deepam Kesari Publishing House. ${book.description}`.slice(0, 158)}
+        path={`/books/${bookSlug(book.title)}`}
+        keywords={`${book.title}, ${book.title} book, ${book.authorName || ''} books, ${book.language} book, Deepam Kesari Publishing House, Gujarati book, Hindi book`}
+        image={book.coverImage}
+        schema={bookSchema(book)}
+      />
+      <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl px-4 pt-6 text-sm text-primary/60 sm:px-6 lg:px-8">
+        <Link to="/">Deepam Kesari Publishing House</Link> / <Link to="/books">Books</Link> / <span>{book.title}</span>
+      </nav>
       {/* Top Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to="/books" className="inline-flex items-center space-x-2 text-sm font-medium text-primary/60 hover:text-secondary transition-colors">

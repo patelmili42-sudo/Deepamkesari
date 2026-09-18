@@ -5,7 +5,7 @@ import { ShoppingBag, MessageCircle, ArrowLeft, BookOpen, Hash, Globe, Tag, Star
 import { Book, Review } from '../types';
 import ReviewCard from '../components/ReviewCard';
 import BookCard from '../components/BookCard';
-import { Seo, bookSchema } from '../components/SEO';
+import { Seo, bookSchema, breadcrumbSchema } from '../components/SEO';
 import { bookSlug } from '../lib/utils';
 
 export default function BookDetails() {
@@ -136,7 +136,14 @@ export default function BookDetails() {
         path={`/books/${bookSlug(book.title)}`}
         keywords={`${book.title}, ${book.title} book, ${book.authorName || ''} books, ${book.language} book, Deepam Kesari Publishing House, Gujarati book, Hindi book`}
         image={book.coverImage}
-        schema={bookSchema(book)}
+        schema={[
+          bookSchema(book),
+          breadcrumbSchema([
+            { name: 'Deepam Kesari Publishing House', path: '/' },
+            { name: 'Books', path: '/books' },
+            { name: book.title, path: `/books/${bookSlug(book.title)}` },
+          ]),
+        ]}
       />
       <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl px-4 pt-6 text-sm text-primary/60 sm:px-6 lg:px-8">
         <Link to="/">Deepam Kesari Publishing House</Link> / <Link to="/books">Books</Link> / <span>{book.title}</span>

@@ -6,13 +6,14 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import fs from 'fs/promises';
 import dotenv from 'dotenv';
-import { bookSlug } from './src/lib/utils';
+import { authorSlug, bookSlug, legacyBookSlug } from './src/lib/utils';
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
-const SITE_URL = process.env.PUBLIC_SITE_URL || 'https://deepamkesari.onrender.com';
+const SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://deepamkesari.onrender.com').replace(/\/+$/, '');
+const PUBLISHER_NAME = 'Deepam Kesari Publishing House';
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -27,6 +28,58 @@ function seoJson(value: unknown): string {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
+function absoluteUrl(value: unknown): string | undefined {
+  if (!value) return undefined;
+  try {
+    return new URL(String(value), `${SITE_URL}/`).href;
+  } catch {
+    return undefined;
+  }
+}
+
+function escapeXml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function websiteSchema() {
+  return {
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
+    name: PUBLISHER_NAME,
+    alternateName: 'Deepam Kesari',
+    url: `${SITE_URL}/`,
+    publisher: { '@id': `${SITE_URL}/#organization` },
+  };
+}
+
+function organizationSchema() {
+  return {
+    '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
+    name: PUBLISHER_NAME,
+    alternateName: ['Deepam Kesari', 'દીપમ કેસરી', 'दीपम केसरी'],
+    url: `${SITE_URL}/`,
+    logo: `${SITE_URL}/assets/images/logo.png`,
+  };
+}
+
+function breadcrumbSchema(items: Array<{ name: string; path: string }>) {
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.path}`,
+    })),
+  };
+}
+
 async function getSeoBook(slug: string) {
   const conn = await getDB();
   if (!conn) return null;
@@ -35,7 +88,9 @@ async function getSeoBook(slug: string) {
     FROM books b
     LEFT JOIN authors a ON b.author_id = a.id
   `);
-  const row = rows.find((book: any) => String(book.id) === slug || bookSlug(book.title) === slug);
+  const row = rows.find((book: any) =>
+    String(book.id) === slug || bookSlug(book.title) === slug || legacyBookSlug(book.title) === slug
+  );
   if (!row) return null;
   return {
     id: row.id,
@@ -69,14 +124,21 @@ async function renderSeoDocument(requestPath: string, metadata: {
   title: string;
   description: string;
   image?: string;
-  schema?: Record<string, unknown>;
+  schema?: Record<string, unknown> | Array<Record<string, unknown>>;
   text: string;
 }) {
   const templatePath = path.join(process.cwd(), 'dist', 'index.html');
   let html = await fs.readFile(templatePath, 'utf8');
   const canonical = `${SITE_URL}${requestPath}`;
-  const image = metadata.image ? `<meta property="og:image" content="${escapeHtml(metadata.image)}" />` : '';
-  const schema = metadata.schema ? `<script type="application/ld+json">${seoJson(metadata.schema)}</script>` : '';
+  const imageUrl = absoluteUrl(metadata.image);
+  const image = imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}" />` : '';
+  const detailSchemas = metadata.schema
+    ? (Array.isArray(metadata.schema) ? metadata.schema : [metadata.schema])
+    : [];
+  const schema = `<script type="application/ld+json">${seoJson({
+    '@context': 'https://schema.org',
+    '@graph': [websiteSchema(), organizationSchema(), ...detailSchemas],
+  })}</script>`;
   const head = `
     <title>${escapeHtml(metadata.title)}</title>
     <meta name="description" content="${escapeHtml(metadata.description)}" />
@@ -86,14 +148,20 @@ async function renderSeoDocument(requestPath: string, metadata: {
     <meta property="og:description" content="${escapeHtml(metadata.description)}" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
-    <meta property="og:site_name" content="Deepam Kesari Publishing House" />
+    <meta property="og:site_name" content="${PUBLISHER_NAME}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(metadata.title)}" />
     <meta name="twitter:description" content="${escapeHtml(metadata.description)}" />
     ${image}
     ${schema}`;
-  html = html.replace('</head>', `${head}\n</head>`);
-  html = html.replace('<div id="root"></div>', `<div id="root"><main><h1>${escapeHtml(metadata.text)}</h1><p>${escapeHtml(metadata.description)}</p></main></div>`);
+  html = html
+    .replace(/<title[\s\S]*?<\/title>/i, '')
+    .replace(/<meta\s+name=["'](?:description|robots|twitter:[^"']+)["'][^>]*\/?\s*>/gi, '')
+    .replace(/<meta\s+property=["']og:[^"']+["'][^>]*\/?\s*>/gi, '')
+    .replace(/<link\s+rel=["']canonical["'][^>]*\/?\s*>/gi, '')
+    .replace(/<script\s+type=["']application\/ld\+json["'][\s\S]*?<\/script>/gi, '')
+    .replace('</head>', `${head}\n</head>`)
+    .replace(/<div id="root">[\s\S]*?<\/div>/i, `<div id="root"><main><h1>${escapeHtml(metadata.text)}</h1><p>${escapeHtml(metadata.description)}</p></main></div>`);
   return html;
 }
 
@@ -104,48 +172,62 @@ async function sendSeoRoute(req: express.Request, res: express.Response, next: e
       const book = await getSeoBook(req.params.slug);
       if (book) {
         const url = `${SITE_URL}/books/${bookSlug(book.title)}`;
+        if (req.path !== `/books/${bookSlug(book.title)}`) return res.redirect(301, url);
         return res.send(await renderSeoDocument(`/books/${bookSlug(book.title)}`, {
           title: `${book.title} | ${book.authorName || 'Book'} | Deepam Kesari Publishing House`,
           description: `${book.title} by ${book.authorName || 'the author'}, published by Deepam Kesari Publishing House. ${book.description}`.slice(0, 158),
           image: book.coverImage,
           text: book.title,
-          schema: {
-            '@context': 'https://schema.org',
+          schema: [
+            {
             '@type': 'Book',
             '@id': `${url}#book`,
             name: book.title,
             url,
             description: book.description,
-            image: book.coverImage,
+            image: absoluteUrl(book.coverImage),
             isbn: book.isbn || undefined,
             inLanguage: book.language,
             genre: book.category,
             author: { '@type': 'Person', name: book.authorName || String(book.authorId) },
-            publisher: { '@type': 'Organization', name: 'Deepam Kesari Publishing House', url: SITE_URL },
-          },
+            publisher: { '@id': `${SITE_URL}/#organization` },
+            },
+            breadcrumbSchema([
+              { name: PUBLISHER_NAME, path: '/' },
+              { name: 'Books', path: '/books' },
+              { name: book.title, path: `/books/${bookSlug(book.title)}` },
+            ]),
+          ],
         }));
       }
     }
     if (req.path.startsWith('/authors/')) {
       const author = await getSeoAuthor(req.params.slug);
       if (author) {
-        const url = `${SITE_URL}/authors/${bookSlug(author.name)}`;
+        const url = `${SITE_URL}/authors/${authorSlug(author.name)}`;
+        if (req.path !== `/authors/${authorSlug(author.name)}`) return res.redirect(301, url);
         return res.send(await renderSeoDocument(`/authors/${bookSlug(author.name)}`, {
           title: `${author.name} | Author | Deepam Kesari Publishing House`,
           description: `${author.name} is a ${author.role.toLowerCase()} featured by Deepam Kesari Publishing House. ${author.bio}`.slice(0, 158),
           image: author.photo,
           text: author.name,
-          schema: {
-            '@context': 'https://schema.org',
+          schema: [
+            {
             '@type': 'Person',
             '@id': `${url}#person`,
             name: author.name,
             url,
-            image: author.photo,
+            image: absoluteUrl(author.photo),
             description: author.bio,
             jobTitle: author.role,
-            worksFor: { '@type': 'Organization', name: 'Deepam Kesari Publishing House', url: SITE_URL },
-          },
+            worksFor: { '@id': `${SITE_URL}/#organization` },
+            },
+            breadcrumbSchema([
+              { name: PUBLISHER_NAME, path: '/' },
+              { name: 'Authors', path: '/authors' },
+              { name: author.name, path: `/authors/${authorSlug(author.name)}` },
+            ]),
+          ],
         }));
       }
     }
@@ -164,6 +246,9 @@ app.use(cors({
 app.use(cookieParser());
 app.get('/books/:slug', sendSeoRoute);
 app.get('/authors/:slug', sendSeoRoute);
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+});
 app.get('/sitemap.xml', async (_req, res) => {
   const conn = await getDB();
   const staticPaths = ['/', '/books', '/authors', '/gallery', '/about', '/contact'];
@@ -173,10 +258,18 @@ app.get('/sitemap.xml', async (_req, res) => {
     const [authors]: any = await conn.execute('SELECT name FROM authors');
     detailPaths = [
       ...books.map((book: any) => `/books/${bookSlug(book.title)}`),
-      ...authors.map((author: any) => `/authors/${bookSlug(author.name)}`),
+      ...authors.map((author: any) => `/authors/${authorSlug(author.name)}`),
+    ];
+  } else {
+    const demo = await getDemoData();
+    detailPaths = [
+      ...(Array.isArray(demo.books) ? demo.books : []).map((book: any) => `/books/${bookSlug(book.title)}`),
+      ...(Array.isArray(demo.authors) ? demo.authors : []).map((author: any) => `/authors/${authorSlug(author.name)}`),
     ];
   }
-  const urls = [...staticPaths, ...detailPaths].map((url) => `<url><loc>${SITE_URL}${url}</loc></url>`).join('');
+  const urls = [...new Set([...staticPaths, ...detailPaths])]
+    .map((url) => `<url><loc>${escapeXml(`${SITE_URL}${url}`)}</loc></url>`)
+    .join('');
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
 });
 app.use(express.static(path.join(process.cwd(), 'public')));
@@ -372,7 +465,9 @@ app.get('/api/books/:id', async (req, res) => {
           FROM books b
           LEFT JOIN authors a ON b.author_id = a.id
         `);
-        rows = allRows.filter((book: any) => String(bookSlug(book.title)) === id || book.title === id);
+        rows = allRows.filter((book: any) =>
+          String(bookSlug(book.title)) === id || legacyBookSlug(book.title) === id || book.title === id
+        );
       }
       
       if (rows.length > 0) {

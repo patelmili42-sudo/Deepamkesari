@@ -72,7 +72,7 @@ export function Seo({
   path: string;
   keywords: string;
   image?: string;
-  schema?: Record<string, unknown>;
+  schema?: Record<string, unknown> | Array<Record<string, unknown>>;
 }) {
   useEffect(() => {
     const canonical = `${SITE_URL}${path}`;
@@ -83,7 +83,7 @@ export function Seo({
     upsertMeta('name', 'robots', 'index,follow');
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
-    upsertMeta('property', 'og:type', 'website');
+    upsertMeta('property', 'og:type', schema && !Array.isArray(schema) && schema['@type'] === 'Book' ? 'book' : 'website');
     upsertMeta('property', 'og:url', canonical);
     upsertMeta('property', 'og:site_name', PUBLISHER_NAME);
     upsertMeta('property', 'og:locale', 'en_IN');
@@ -97,7 +97,7 @@ export function Seo({
     upsertLink('canonical', canonical);
     upsertJsonLd('page', {
       '@context': 'https://schema.org',
-      '@graph': [baseWebsite(), baseOrganization(), ...(schema ? [schema] : [])],
+      '@graph': [baseWebsite(), baseOrganization(), ...(schema ? (Array.isArray(schema) ? schema : [schema]) : [])],
     });
   }, [description, image, keywords, path, schema, title]);
 
@@ -140,6 +140,18 @@ export function authorSchema(author: Author, books: Book[]) {
       '@type': 'Book',
       name: book.title,
       url: `${SITE_URL}/books/${bookSlug(book.title)}`,
+    })),
+  };
+}
+
+export function breadcrumbSchema(items: Array<{ name: string; path: string }>) {
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.path}`,
     })),
   };
 }

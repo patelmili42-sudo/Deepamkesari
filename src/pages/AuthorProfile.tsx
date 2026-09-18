@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { Author, Book } from '../types';
 import { MessageCircle, Mail, Award, User as UserIcon, Instagram, ChevronRight } from 'lucide-react';
 import { bookSlug } from '../lib/utils';
-import { Seo, authorSchema } from '../components/SEO';
+import { Seo, authorSchema, breadcrumbSchema } from '../components/SEO';
 
 const fallbackAuthorImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800';
 
@@ -69,7 +69,14 @@ export default function AuthorProfile() {
         path={`/authors/${bookSlug(author.name)}`}
         keywords={`${author.name}, ${author.name} books, ${author.name} author, Deepam Kesari, Gujarati author, Hindi author`}
         image={author.photo}
-        schema={authorSchema(author, books)}
+        schema={[
+          authorSchema(author, books),
+          breadcrumbSchema([
+            { name: 'Deepam Kesari Publishing House', path: '/' },
+            { name: 'Authors', path: '/authors' },
+            { name: author.name, path: `/authors/${bookSlug(author.name)}` },
+          ]),
+        ]}
       />
       <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl px-4 pt-6 text-sm text-primary/60 sm:px-6 lg:px-8">
         <Link to="/">Deepam Kesari Publishing House</Link> / <Link to="/authors">Authors</Link> / <span>{author.name}</span>

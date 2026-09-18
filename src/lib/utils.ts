@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function bookSlug(title: string): string {
+function transliteratedBookSlug(title: string): string {
   const indicMap: Record<string, string> = {
     અ: 'a', આ: 'aa', ઇ: 'i', ઈ: 'ee', ઉ: 'u', ઊ: 'oo', ઋ: 'ru', એ: 'e', ઐ: 'ai', ઓ: 'o', ઔ: 'au',
     ક: 'ka', ખ: 'kha', ગ: 'ga', ઘ: 'gha', ઙ: 'nga', ચ: 'cha', છ: 'chha', જ: 'ja', ઝ: 'jha', ઞ: 'nya',
@@ -34,6 +34,15 @@ export function bookSlug(title: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+export function bookSlug(title: string): string {
+  const slug = transliteratedBookSlug(title);
+  return slug === 'rasto-kari-javaanaa' ? 'rasto-kari-javana' : slug;
+}
+
+export function legacyBookSlug(title: string): string {
+  return transliteratedBookSlug(title);
 }
 
 export function authorSlug(name: string): string {

@@ -137,8 +137,7 @@ async function getSeoBook(slug: string) {
   const [rows]: any = await conn.execute(`
     SELECT b.*, a.name as authorName
     FROM books b
-    LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
-    WHERE b.is_active = 1
+    LEFT JOIN authors a ON b.author_id = a.id
   `);
   const row = rows.find((book: any) =>
     String(book.id) === slug || bookSlug(book.title) === slug || legacyBookSlug(book.title) === slug
@@ -176,7 +175,7 @@ async function getSeoEvent(slug: string) {
   const conn = await getDB();
   if (!conn) return null;
   const [rows]: any = await conn.execute(
-    'SELECT id, title, description, image FROM events WHERE is_active = 1'
+    'SELECT id, title, description, image FROM events'
   );
   return rows.find((event: any) =>
     String(event.id) === slug || bookSlug(event.title) === slug
@@ -337,7 +336,7 @@ app.get('/sitemap.xml', async (_req, res) => {
   if (conn) {
     const [books]: any = await conn.execute('SELECT title FROM books');
     const [authors]: any = await conn.execute('SELECT name FROM authors');
-    const [events]: any = await conn.execute('SELECT title FROM events WHERE is_active = 1');
+    const [events]: any = await conn.execute('SELECT title FROM events');
     detailPaths = [
       ...books.map((book: any) => `/books/${bookSlug(book.title)}`),
       ...authors.map((author: any) => `/authors/${authorSlug(author.name)}`),
@@ -479,8 +478,7 @@ app.get('/api/books', async (req, res) => {
       const [rows]: any = await conn.execute(`
         SELECT b.*, a.name as authorName 
         FROM books b 
-        LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
-        WHERE b.is_active = 1
+        LEFT JOIN authors a ON b.author_id = a.id
       `);
       return res.json(rows.map((b: any) => ({
         id: b.id,
@@ -508,7 +506,7 @@ app.get('/api/authors', async (req, res) => {
   const conn = await getDB();
   if (conn) {
     try {
-      const [rows]: any = await conn.execute('SELECT * FROM authors WHERE is_active = 1');
+      const [rows]: any = await conn.execute('SELECT * FROM authors');
       const authors = rows.map((row: any) => ({
         id: row.id,
         name: row.name,
@@ -538,17 +536,15 @@ app.get('/api/books/:id', async (req, res) => {
       let [rows]: any = await conn.execute(`
         SELECT b.*, a.name as authorName 
         FROM books b 
-        LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
+        LEFT JOIN authors a ON b.author_id = a.id
         WHERE b.id = ?
-          AND b.is_active = 1
       `, [id]);
 
       if (rows.length === 0) {
         const [allRows]: any = await conn.execute(`
           SELECT b.*, a.name as authorName
           FROM books b
-          LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
-          WHERE b.is_active = 1
+          LEFT JOIN authors a ON b.author_id = a.id
         `);
         rows = allRows.filter((book: any) =>
           String(bookSlug(book.title)) === id || legacyBookSlug(book.title) === id || book.title === id
@@ -702,7 +698,7 @@ app.get('/api/events', async (req, res) => {
 
   if (conn) {
     try {
-      const [rows]: any = await conn.execute('SELECT * FROM events WHERE is_active = 1 ORDER BY event_date DESC');
+      const [rows]: any = await conn.execute('SELECT * FROM events ORDER BY event_date DESC');
       const events = await Promise.all(rows.map(async (event: any) => {
         const [galleryRows]: any = await conn.execute(
           'SELECT image FROM event_gallery_images WHERE event_id = ? ORDER BY id ASC',
@@ -737,7 +733,7 @@ app.get('/api/events/:id', async (req, res) => {
 
   if (conn) {
     try {
-      const [rows]: any = await conn.execute('SELECT * FROM events WHERE is_active = 1');
+      const [rows]: any = await conn.execute('SELECT * FROM events');
       const matches = rows.filter((event: any) =>
         String(event.id) === id || bookSlug(event.title) === id
       );
@@ -778,10 +774,10 @@ app.get('/api/reviews/:bookId', async (req, res) => {
   
   if (conn) {
     try {
-      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total FROM reviews WHERE book_id = ? AND is_active = 1', [bookId]);
+      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total FROM reviews WHERE book_id = ?', [bookId]);
       const total = Number(countRows[0]?.total || 0);
       const [rows]: any = await conn.execute(
-        `SELECT * FROM reviews WHERE book_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+        `SELECT * FROM reviews WHERE book_id = ? ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
         [bookId]
       );
       const reviews = rows.map(normalizeReview);
@@ -845,15 +841,15 @@ app.get('/api/reviews', async (req, res) => {
 
   if (conn) {
     try {
-      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total, AVG(rating) as avgRating FROM reviews WHERE is_active = 1');
+      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total, AVG(rating) as avgRating FROM reviews');
       const total = Number(countRows[0]?.total || 0);
       const averageRating = Number(countRows[0]?.avgRating || 0).toFixed(1);
-      const [uniqueRows]: any = await conn.execute('SELECT COUNT(DISTINCT user_name) as uniqueReaders FROM reviews WHERE is_active = 1');
+      const [uniqueRows]: any = await conn.execute('SELECT COUNT(DISTINCT user_name) as uniqueReaders FROM reviews');
       const uniqueReaders = Number(uniqueRows[0]?.uniqueReaders || 0);
 
       if (req.query.page) {
         const [rows]: any = await conn.execute(
-          'SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id WHERE r.is_active = 1 AND b.is_active = 1 ORDER BY r.created_at DESC LIMIT ? OFFSET ?',
+          'SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id ORDER BY r.created_at DESC LIMIT ? OFFSET ?',
           [limit, offset]
         );
         const reviews = rows.map((r: any) => ({
@@ -863,7 +859,7 @@ app.get('/api/reviews', async (req, res) => {
         return res.json({ reviews, total, averageRating, uniqueReaders });
       }
 
-      const [rows]: any = await conn.execute('SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id WHERE r.is_active = 1 AND b.is_active = 1 ORDER BY r.created_at DESC');
+      const [rows]: any = await conn.execute('SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id ORDER BY r.created_at DESC');
       return res.json(rows.map((r: any) => ({
         ...normalizeReview(r),
         bookTitle: r.bookTitle

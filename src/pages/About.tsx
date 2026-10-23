@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { BookOpen, Shield, Heart, Award, Zap, Globe } from 'lucide-react';
+import { Seo } from '../components/SEO';
 
 export default function About() {
   const values = [
@@ -11,6 +12,12 @@ export default function About() {
 
   return (
     <div className="bg-bg">
+      <Seo
+        title="About Deepam Kesari Publishing House"
+        description="Learn about Deepam Kesari Publishing House and our mission to publish meaningful literature and support Indian authors."
+        path="/about"
+        keywords="about Deepam Kesari, Indian publisher, Gujarati literature, publishing house"
+      />
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden bg-primary">
         <div className="absolute inset-0 opacity-10">

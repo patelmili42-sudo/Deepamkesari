@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, MapPin } from 'lucide-react';
+import { Seo } from '../components/SEO';
+import { bookSlug } from '../lib/utils';
 
 interface EventItem {
   id: string | number;
@@ -57,6 +59,13 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-bg">
+      <Seo
+        title={`${event.title} | Deepam Kesari Publishing House`}
+        description={`${event.description || event.title} | Events at Deepam Kesari Publishing House`.slice(0, 158)}
+        path={`/events/${bookSlug(event.title)}`}
+        keywords={`${event.title}, Deepam Kesari events, literary events`}
+        image={event.image}
+      />
       {selectedImage && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"

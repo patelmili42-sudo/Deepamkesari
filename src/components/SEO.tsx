@@ -5,6 +5,7 @@ import { authorSlug, bookSlug } from '../lib/utils';
 const SITE_URL = 'https://deepamkesari.onrender.com';
 const SITE_HOME_URL = `${SITE_URL}/`;
 const PUBLISHER_NAME = 'Deepam Kesari Publishing House';
+const SITE_KEYWORDS = 'rasto kari javana, Deep Patel, Deep patidar, Deepam Kesari, Deepam Kesari Publishing House, Gujarati Novels, Gujarati books, gujarati literatures';
 
 function upsertMeta(attribute: 'name' | 'property', key: string, content: string) {
   let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
@@ -79,7 +80,7 @@ export function Seo({
     document.title = title;
     document.documentElement.lang = 'en';
     upsertMeta('name', 'description', description);
-    upsertMeta('name', 'keywords', keywords);
+    upsertMeta('name', 'keywords', `${keywords}, ${SITE_KEYWORDS}`);
     upsertMeta('name', 'robots', 'index,follow');
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);

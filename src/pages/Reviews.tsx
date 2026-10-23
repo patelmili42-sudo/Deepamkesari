@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ReviewCard from '../components/ReviewCard';
 import { Review } from '../types';
 import { MessageSquare, Quote, Sparkles, Star } from 'lucide-react';
+import { Seo } from '../components/SEO';
 
 export default function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -57,6 +58,12 @@ export default function Reviews() {
 
   return (
     <div className="min-h-screen bg-bg px-4 pb-24 pt-16 sm:px-6 lg:px-8">
+      <Seo
+        title="Reader Reviews | Deepam Kesari Publishing House"
+        description="Read feedback from readers about books published by Deepam Kesari Publishing House."
+        path="/reviews"
+        keywords="Deepam Kesari reviews, reader reviews, book reviews, Gujarati books"
+      />
       <div className="mx-auto max-w-7xl">
         <section className="relative overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#111111_0%,#1f1f1f_52%,#4a3a1d_100%)] px-6 py-16 shadow-2xl shadow-primary/10 sm:px-8 md:px-12 md:py-20">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(200,169,106,0.18),transparent_16%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.06),transparent_14%)]" />

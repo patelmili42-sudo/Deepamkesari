@@ -10,7 +10,7 @@ const SLIDES = [
   {
     id: 1,
     title: "રસ્તો કરી જવાના",
-    subtitle: "A collection of inspiring Gujarati literature by Deep Patel, bridging tradition and modern thought.",
+    subtitle: "Rasto Kari Javana (રસ્તો કરી જવાના) is an inspiring Gujarati book by Deep Patel, published by Deepam Kesari Publishing House.",
     image: ASSETS.images.hero1,
     fallback: ASSETS.images.book_stack,
     primaryAction: { label: "Explore Collection", link: "/books" },
@@ -81,11 +81,11 @@ export default function HeroSlider() {
                 transition={{ delay: 0.3, duration: 0.8 }}
                 className="z-10 max-w-2xl"
               >
-                <h1 className="mb-4 text-xl font-serif leading-tight text-secondary sm:text-2xl md:text-3xl">
+                <h1 className="mb-2 text-3xl font-serif leading-tight text-white sm:text-4xl md:text-6xl lg:text-7xl">
                   Deepam Kesari Publishing House
                 </h1>
-                <h2 className="mb-6 text-3xl font-serif leading-tight text-white sm:text-4xl md:text-6xl lg:text-7xl">
-                  {SLIDES[current].title}
+                <h2 className="mb-6 text-xl font-serif leading-tight text-secondary sm:text-2xl md:text-3xl">
+                  Gujarati, Hindi and English Books
                 </h2>
                 <p className="mb-8 max-w-2xl text-sm font-light leading-relaxed text-white/80 sm:mb-10 sm:text-lg md:text-xl">
                   {SLIDES[current].subtitle}

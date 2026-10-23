@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Mail, Phone, MapPin, Globe, Clock, Send } from 'lucide-react';
 import { useState, FormEvent } from 'react';
+import { Seo } from '../components/SEO';
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -44,6 +45,12 @@ export default function Contact() {
 
   return (
     <div className="bg-bg min-h-screen">
+      <Seo
+        title="Contact Deepam Kesari Publishing House"
+        description="Contact Deepam Kesari Publishing House with questions about books, publishing, manuscripts, or partnerships."
+        path="/contact"
+        keywords="contact Deepam Kesari, publisher contact, book publishing enquiries"
+      />
       {/* Header */}
       <section className="py-24 bg-primary text-white text-center px-4">
         <motion.div

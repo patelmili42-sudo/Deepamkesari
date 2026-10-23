@@ -44,7 +44,7 @@ export default function Home() {
     <div className="flex flex-col w-full">
       <Seo
         title="Deepam Kesari Publishing House | Gujarati, Hindi and English Books"
-        description="Deepam Kesari Publishing House publishes meaningful Gujarati, Hindi and English books by Indian authors, writers and translators."
+        description="Deepam Kesari Publishing House: Publishes meaningful Gujarati, Hindi and English books by Indian authors, writers and translators, including Rasto Kari Javana by Deep Patel."
         path="/"
         keywords="Deepam Kesari Publishing House, Deepam Kesari books, Gujarati publisher, Hindi publisher, English books, Indian authors, Indian literature, gujarati books, hindi books, english books, indian writers, indian translators, rasto kari javana, રસ્તો કરી જવાના, रास्तो करी जवाना"
       />

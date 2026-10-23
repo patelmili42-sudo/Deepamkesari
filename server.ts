@@ -14,6 +14,57 @@ const app = express();
 const PORT = 3000;
 const SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://deepamkesari.onrender.com').replace(/\/+$/, '');
 const PUBLISHER_NAME = 'Deepam Kesari Publishing House';
+const SITE_KEYWORDS = 'rasto kari javana, Deep Patel, Deep patidar, Deepam Kesari, Deepam Kesari Publishing House, Gujarati Novels, Gujarati books, gujarati literatures';
+const PUBLIC_PAGE_SEO = {
+  '/': {
+    title: 'Deepam Kesari Publishing House | Gujarati, Hindi and English Books',
+    description: 'Discover Deepam Kesari Publishing House: Gujarati, Hindi and English books, including Rasto Kari Javana by Deep Patel.',
+    keywords: `${SITE_KEYWORDS}, Gujarati books, Hindi books, Indian authors`,
+    text: 'Deepam Kesari Publishing House',
+  },
+  '/books': {
+    title: 'Books in Gujarati, Hindi and English | Deepam Kesari Publishing House',
+    description: 'Explore books published by Deepam Kesari Publishing House in Gujarati, Hindi and English, including works by our authors and translators.',
+    keywords: `${SITE_KEYWORDS}, Gujarati books, Gujarati novels, Hindi books`,
+    text: 'Discover Meaningful Literature',
+  },
+  '/authors': {
+    title: 'Authors and Translators | Deepam Kesari Publishing House',
+    description: 'Meet the authors and translators published by Deepam Kesari Publishing House and explore their books and literary work.',
+    keywords: `${SITE_KEYWORDS}, Indian authors, Gujarati authors, Hindi authors, translators`,
+    text: 'Our Distinguished Authors',
+  },
+  '/about': {
+    title: 'About Deepam Kesari Publishing House',
+    description: 'Learn about Deepam Kesari Publishing House and our mission to publish meaningful literature and support Indian authors.',
+    keywords: `${SITE_KEYWORDS}, Indian publisher, publishing house`,
+    text: 'Our Story & Vision',
+  },
+  '/reviews': {
+    title: 'Reader Reviews | Deepam Kesari Publishing House',
+    description: 'Read feedback from readers about books published by Deepam Kesari Publishing House.',
+    keywords: `${SITE_KEYWORDS}, reader reviews, book reviews`,
+    text: 'Community Feedback',
+  },
+  '/gallery': {
+    title: 'Photo Gallery | Deepam Kesari Publishing House',
+    description: 'Explore events, book launches, and moments from Deepam Kesari Publishing House.',
+    keywords: `${SITE_KEYWORDS}, book launches, literary events, publisher gallery`,
+    text: 'Photo Gallery',
+  },
+  '/submit-manuscript': {
+    title: 'Submit Your Manuscript | Deepam Kesari Publishing House',
+    description: 'Submit your manuscript to Deepam Kesari Publishing House and learn how our team supports authors and meaningful stories.',
+    keywords: `${SITE_KEYWORDS}, submit manuscript, publish a book, authors`,
+    text: 'Submit Your Manuscript',
+  },
+  '/contact': {
+    title: 'Contact Deepam Kesari Publishing House',
+    description: 'Contact Deepam Kesari Publishing House with questions about books, publishing, manuscripts, or partnerships.',
+    keywords: `${SITE_KEYWORDS}, contact publisher, book publishing enquiries`,
+    text: 'Contact Deepam Kesari',
+  },
+};
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -86,7 +137,8 @@ async function getSeoBook(slug: string) {
   const [rows]: any = await conn.execute(`
     SELECT b.*, a.name as authorName
     FROM books b
-    LEFT JOIN authors a ON b.author_id = a.id
+    LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
+    WHERE b.is_active = 1
   `);
   const row = rows.find((book: any) =>
     String(book.id) === slug || bookSlug(book.title) === slug || legacyBookSlug(book.title) === slug
@@ -120,9 +172,21 @@ async function getSeoAuthor(slug: string) {
   };
 }
 
+async function getSeoEvent(slug: string) {
+  const conn = await getDB();
+  if (!conn) return null;
+  const [rows]: any = await conn.execute(
+    'SELECT id, title, description, image FROM events WHERE is_active = 1'
+  );
+  return rows.find((event: any) =>
+    String(event.id) === slug || bookSlug(event.title) === slug
+  ) || null;
+}
+
 async function renderSeoDocument(requestPath: string, metadata: {
   title: string;
   description: string;
+  keywords?: string;
   image?: string;
   schema?: Record<string, unknown> | Array<Record<string, unknown>>;
   text: string;
@@ -142,6 +206,7 @@ async function renderSeoDocument(requestPath: string, metadata: {
   const head = `
     <title>${escapeHtml(metadata.title)}</title>
     <meta name="description" content="${escapeHtml(metadata.description)}" />
+    <meta name="keywords" content="${escapeHtml(metadata.keywords || SITE_KEYWORDS)}" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="${escapeHtml(canonical)}" />
     <meta property="og:title" content="${escapeHtml(metadata.title)}" />
@@ -156,7 +221,7 @@ async function renderSeoDocument(requestPath: string, metadata: {
     ${schema}`;
   html = html
     .replace(/<title[\s\S]*?<\/title>/i, '')
-    .replace(/<meta\s+name=["'](?:description|robots|twitter:[^"']+)["'][^>]*\/?\s*>/gi, '')
+    .replace(/<meta\s+name=["'](?:description|keywords|robots|twitter:[^"']+)["'][^>]*\/?\s*>/gi, '')
     .replace(/<meta\s+property=["']og:[^"']+["'][^>]*\/?\s*>/gi, '')
     .replace(/<link\s+rel=["']canonical["'][^>]*\/?\s*>/gi, '')
     .replace(/<script\s+type=["']application\/ld\+json["'][\s\S]*?<\/script>/gi, '')
@@ -176,6 +241,7 @@ async function sendSeoRoute(req: express.Request, res: express.Response, next: e
         return res.send(await renderSeoDocument(`/books/${bookSlug(book.title)}`, {
           title: `${book.title} | ${book.authorName || 'Book'} | Deepam Kesari Publishing House`,
           description: `${book.title} by ${book.authorName || 'the author'}, published by Deepam Kesari Publishing House. ${book.description}`.slice(0, 158),
+          keywords: `${book.title}, ${book.authorName || 'Indian author'}, Gujarati books`,
           image: book.coverImage,
           text: book.title,
           schema: [
@@ -206,9 +272,10 @@ async function sendSeoRoute(req: express.Request, res: express.Response, next: e
       if (author) {
         const url = `${SITE_URL}/authors/${authorSlug(author.name)}`;
         if (req.path !== `/authors/${authorSlug(author.name)}`) return res.redirect(301, url);
-        return res.send(await renderSeoDocument(`/authors/${bookSlug(author.name)}`, {
+        return res.send(await renderSeoDocument(`/authors/${authorSlug(author.name)}`, {
           title: `${author.name} | Author | Deepam Kesari Publishing House`,
           description: `${author.name} is a ${author.role.toLowerCase()} featured by Deepam Kesari Publishing House. ${author.bio}`.slice(0, 158),
+          keywords: `${author.name}, ${author.role}, Indian author`,
           image: author.photo,
           text: author.name,
           schema: [
@@ -231,6 +298,19 @@ async function sendSeoRoute(req: express.Request, res: express.Response, next: e
         }));
       }
     }
+    if (req.path.startsWith('/events/')) {
+      const event = await getSeoEvent(req.params.id);
+      if (!event) return res.status(404).send('Event not found');
+      const eventPath = `/events/${bookSlug(event.title)}`;
+      if (req.path !== eventPath) return res.redirect(301, `${SITE_URL}${eventPath}`);
+      return res.send(await renderSeoDocument(eventPath, {
+        title: `${event.title} | Deepam Kesari Publishing House`,
+        description: `${event.description || event.title} | Events at Deepam Kesari Publishing House`.slice(0, 158),
+        keywords: `${event.title}, Deepam Kesari events, literary events`,
+        image: event.image,
+        text: event.title,
+      }));
+    }
   } catch (error) {
     console.error('SEO route rendering failed', error);
   }
@@ -246,19 +326,22 @@ app.use(cors({
 app.use(cookieParser());
 app.get('/books/:slug', sendSeoRoute);
 app.get('/authors/:slug', sendSeoRoute);
+app.get('/events/:id', sendSeoRoute);
 app.get('/robots.txt', (_req, res) => {
   res.type('text/plain').send(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 });
 app.get('/sitemap.xml', async (_req, res) => {
   const conn = await getDB();
-  const staticPaths = ['/', '/books', '/authors', '/gallery', '/about', '/contact'];
+  const staticPaths = Object.keys(PUBLIC_PAGE_SEO);
   let detailPaths: string[] = [];
   if (conn) {
     const [books]: any = await conn.execute('SELECT title FROM books');
     const [authors]: any = await conn.execute('SELECT name FROM authors');
+    const [events]: any = await conn.execute('SELECT title FROM events WHERE is_active = 1');
     detailPaths = [
       ...books.map((book: any) => `/books/${bookSlug(book.title)}`),
       ...authors.map((author: any) => `/authors/${authorSlug(author.name)}`),
+      ...events.map((event: any) => `/events/${bookSlug(event.title)}`),
     ];
   } else {
     const demo = await getDemoData();
@@ -310,7 +393,6 @@ let dbInitialization: Promise<mysql.Pool | null> | null = null;
 const USE_MYSQL = Boolean(
   process.env.DB_HOST &&
   process.env.DB_USER &&
-  process.env.DB_PASSWORD &&
   process.env.DB_NAME
 );
 
@@ -324,7 +406,7 @@ async function getDB(): Promise<mysql.Pool | null> {
     const pool = mysql.createPool({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
+      password: process.env.DB_PASSWORD || '',
       database: process.env.DB_NAME,
       port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
       waitForConnections: true,
@@ -332,9 +414,9 @@ async function getDB(): Promise<mysql.Pool | null> {
       queueLimit: 0,
       enableKeepAlive: true,
       keepAliveInitialDelay: 0,
-      ssl: {
-        rejectUnauthorized: false
-      },
+      ssl: process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }
+        : undefined,
       connectTimeout: 30000
     });
 
@@ -397,7 +479,8 @@ app.get('/api/books', async (req, res) => {
       const [rows]: any = await conn.execute(`
         SELECT b.*, a.name as authorName 
         FROM books b 
-        LEFT JOIN authors a ON b.author_id = a.id
+        LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
+        WHERE b.is_active = 1
       `);
       return res.json(rows.map((b: any) => ({
         id: b.id,
@@ -425,7 +508,7 @@ app.get('/api/authors', async (req, res) => {
   const conn = await getDB();
   if (conn) {
     try {
-      const [rows]: any = await conn.execute('SELECT * FROM authors');
+      const [rows]: any = await conn.execute('SELECT * FROM authors WHERE is_active = 1');
       const authors = rows.map((row: any) => ({
         id: row.id,
         name: row.name,
@@ -455,15 +538,17 @@ app.get('/api/books/:id', async (req, res) => {
       let [rows]: any = await conn.execute(`
         SELECT b.*, a.name as authorName 
         FROM books b 
-        LEFT JOIN authors a ON b.author_id = a.id
+        LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
         WHERE b.id = ?
+          AND b.is_active = 1
       `, [id]);
 
       if (rows.length === 0) {
         const [allRows]: any = await conn.execute(`
           SELECT b.*, a.name as authorName
           FROM books b
-          LEFT JOIN authors a ON b.author_id = a.id
+          LEFT JOIN authors a ON b.author_id = a.id AND a.is_active = 1
+          WHERE b.is_active = 1
         `);
         rows = allRows.filter((book: any) =>
           String(bookSlug(book.title)) === id || legacyBookSlug(book.title) === id || book.title === id
@@ -617,7 +702,7 @@ app.get('/api/events', async (req, res) => {
 
   if (conn) {
     try {
-      const [rows]: any = await conn.execute('SELECT * FROM events ORDER BY event_date DESC');
+      const [rows]: any = await conn.execute('SELECT * FROM events WHERE is_active = 1 ORDER BY event_date DESC');
       const events = await Promise.all(rows.map(async (event: any) => {
         const [galleryRows]: any = await conn.execute(
           'SELECT image FROM event_gallery_images WHERE event_id = ? ORDER BY id ASC',
@@ -652,9 +737,12 @@ app.get('/api/events/:id', async (req, res) => {
 
   if (conn) {
     try {
-      const [rows]: any = await conn.execute('SELECT * FROM events WHERE id = ?', [id]);
-      if (rows.length > 0) {
-        const event = rows[0];
+      const [rows]: any = await conn.execute('SELECT * FROM events WHERE is_active = 1');
+      const matches = rows.filter((event: any) =>
+        String(event.id) === id || bookSlug(event.title) === id
+      );
+      const event = matches.length === 1 ? matches[0] : null;
+      if (event) {
         const [galleryRows]: any = await conn.execute(
           'SELECT image FROM event_gallery_images WHERE event_id = ? ORDER BY id ASC',
           [event.id]
@@ -690,10 +778,10 @@ app.get('/api/reviews/:bookId', async (req, res) => {
   
   if (conn) {
     try {
-      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total FROM reviews WHERE book_id = ?', [bookId]);
+      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total FROM reviews WHERE book_id = ? AND is_active = 1', [bookId]);
       const total = Number(countRows[0]?.total || 0);
       const [rows]: any = await conn.execute(
-        `SELECT * FROM reviews WHERE book_id = ? ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+        `SELECT * FROM reviews WHERE book_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
         [bookId]
       );
       const reviews = rows.map(normalizeReview);
@@ -757,15 +845,15 @@ app.get('/api/reviews', async (req, res) => {
 
   if (conn) {
     try {
-      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total, AVG(rating) as avgRating FROM reviews');
+      const [countRows]: any = await conn.execute('SELECT COUNT(*) as total, AVG(rating) as avgRating FROM reviews WHERE is_active = 1');
       const total = Number(countRows[0]?.total || 0);
       const averageRating = Number(countRows[0]?.avgRating || 0).toFixed(1);
-      const [uniqueRows]: any = await conn.execute('SELECT COUNT(DISTINCT user_name) as uniqueReaders FROM reviews');
+      const [uniqueRows]: any = await conn.execute('SELECT COUNT(DISTINCT user_name) as uniqueReaders FROM reviews WHERE is_active = 1');
       const uniqueReaders = Number(uniqueRows[0]?.uniqueReaders || 0);
 
       if (req.query.page) {
         const [rows]: any = await conn.execute(
-          'SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id ORDER BY r.created_at DESC LIMIT ? OFFSET ?',
+          'SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id WHERE r.is_active = 1 AND b.is_active = 1 ORDER BY r.created_at DESC LIMIT ? OFFSET ?',
           [limit, offset]
         );
         const reviews = rows.map((r: any) => ({
@@ -775,7 +863,7 @@ app.get('/api/reviews', async (req, res) => {
         return res.json({ reviews, total, averageRating, uniqueReaders });
       }
 
-      const [rows]: any = await conn.execute('SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id ORDER BY r.created_at DESC');
+      const [rows]: any = await conn.execute('SELECT r.*, b.title as bookTitle FROM reviews r LEFT JOIN books b ON r.book_id = b.id WHERE r.is_active = 1 AND b.is_active = 1 ORDER BY r.created_at DESC');
       return res.json(rows.map((r: any) => ({
         ...normalizeReview(r),
         bookTitle: r.bookTitle
@@ -851,6 +939,15 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    app.get(Object.keys(PUBLIC_PAGE_SEO), async (req, res, next) => {
+      try {
+        const requestPath = req.path === '/' ? '/' : `/${req.path.split('/').filter(Boolean).join('/')}`;
+        const page = PUBLIC_PAGE_SEO[requestPath as keyof typeof PUBLIC_PAGE_SEO];
+        res.type('html').send(await renderSeoDocument(requestPath, page));
+      } catch (error) {
+        next(error);
+      }
+    });
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));

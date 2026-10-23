@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, CalendarDays, Camera, MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Seo } from '../components/SEO';
+import { bookSlug } from '../lib/utils';
 
 interface EventItem {
   id: number;
@@ -53,6 +55,12 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-bg">
+      <Seo
+        title="Photo Gallery | Deepam Kesari Publishing House"
+        description="Explore events, book launches, and moments from Deepam Kesari Publishing House."
+        path="/gallery"
+        keywords="Deepam Kesari gallery, book launches, literary events, Gujarati publishing"
+      />
       {selectedImage && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
@@ -179,7 +187,7 @@ export default function Gallery() {
                     </div>
                   </div>
                   <Link
-                    to={`/events/${event.id}`}
+                    to={`/events/${bookSlug(event.title)}`}
                     className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-secondary hover:text-primary"
                   >
                     View Event Details <ArrowRight size={16} />
